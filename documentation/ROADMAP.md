@@ -37,12 +37,14 @@ Verifikasi 2026-10-02:
 - `py_compile`: OK
 - `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest tests/test_protocol.py`: **7 passed**
 - `python server.py --dry-run --port 9877` + kirim 2 paket: `client connected`, `failsafe: no packet for 0.53s, resetting inputs` — sesuai target
-- `flutter analyze/test`: belum jalan (tidak ada Flutter SDK di env ini)
+- `flutter analyze/test`: awalnya belum jalan (SDK belum ada), 2026-10-02 terverifikasi setelah install Flutter 3.47.6: `analyze: No issues found`, `flutter test: 3 passed` (theme + NeuSurface)
 
 Catatan env: image ini ada ROS Humble system-wide yang merusak `pytest` global (plugin `launch_testing`/`anyio`). Bukan dependensi project. Selalu pakai `server/.venv` + `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`.
 
-## M1 — Layout lengkap (BERIKUTNYA)
+## M1 — Layout lengkap (BERJALAN, slice M1a selesai)
 
+- [x] M1a fondasi: `core/theme.dart` (token DESIGN.md §2-4) + `NeuSurface` raised/pressed via `CustomPainter` + test widget
+- [x] M1b buttons: `ActionGlyph` vektor, `NeuPressable` (pointer-id per kontrol), `NeuButton` aksi + `ShoulderButton` L1/L2/R1/R2 on/off + 5 widget test (down/up/cancel, multi-touch 2 tombol)
 - [ ] `InputState` penuh di app + `UdpSender` stabil 60 Hz tanpa jank
 - [ ] Widget: `NeuJoystick` (output -1..1, deadzone 8%, kembali 0 saat lepas), `NeuDpad` (geser antar segmen, diagonal = 2 arah), `NeuButton` aksi, `ShoulderButton` L1/L2/R1/R2 (v1 boleh on/off)
 - [ ] Layar controller landscape sesuai `DESIGN.md` §1 (D-pad kiri-atas, stick kiri-bawah, aksi kanan-tengah, stick kanan-bawah, L2/L1 kiri-atas, R2/R1 kanan-atas)
@@ -100,4 +102,6 @@ python server.py --port 9876             # butuh /dev/uinput (grup input / udev)
 
 ## Log
 
-- 2026-10-02: M0 Linux selesai (server + test + app 1 tombol). Berikutnya M1 atas persetujuan user.
+- 2026-10-02: M0 Linux selesai (server + test + app 1 tombol).
+- 2026-10-02: M1a selesai (theme + NeuSurface, tanpa dependensi baru).
+- 2026-10-02: M1b selesai (buttons, `analyze` bersih, `flutter test` 8/8). Berikutnya M1c (joystick) atas persetujuan user.
