@@ -1,5 +1,6 @@
-// Full controller screen (M1d): landscape PlayStation-style layout wired
-// to a single ControllerState. UdpSender streams it at 60 Hz (M0 path).
+// Full controller screen (M2a): landscape PlayStation-style layout wired
+// to a single ControllerState. Opened from ConnectScreen with the saved
+// address; auto-connects the 60 Hz UdpSender (PRD section 6 flow).
 // Stick screen-space y maps 1:1 to protocol ly/ry (down positive).
 
 import 'package:flutter/material.dart';
@@ -18,8 +19,21 @@ import 'widgets/shoulder_button.dart';
 class ControllerScreen extends StatefulWidget {
   /// Injected for tests; the screen owns and disposes it when absent.
   final ControllerState? controller;
+  final String host;
+  final int port;
 
-  const ControllerScreen({super.key, this.controller});
+  /// False in tests to avoid opening real UDP sockets.
+  final bool autoConnect;
+  final void Function()? onDisconnect;
+
+  const ControllerScreen({
+    super.key,
+    this.controller,
+    this.host = '192.168.43.1',
+    this.port = kDefaultPort,
+    this.autoConnect = true,
+    this.onDisconnect,
+  });
 
   @override
   State<ControllerScreen> createState() => _ControllerScreenState();
@@ -28,10 +42,9 @@ class ControllerScreen extends StatefulWidget {
 class _ControllerScreenState extends State<ControllerScreen> {
   late final ControllerState controller;
   bool _owned = false;
-  final TextEditingController ipController =
-      TextEditingController(text: '192.168.43.1');
   UdpSender? _sender;
   bool _connected = false;
+  String? _error;
 
   @override
   void initState() {
@@ -46,32 +59,46 @@ class _ControllerScreenState extends State<ControllerScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    if (widget.autoConnect) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _connect());
+    }
   }
 
   @override
   void dispose() {
     _sender?.stop();
-    ipController.dispose();
     if (_owned) controller.dispose();
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
 
-  Future<void> _toggleConnection() async {
-    if (_connected) {
-      _sender?.stop();
-      _sender = null;
-      setState(() => _connected = false);
-      return;
+  Future<void> _connect() async {
+    try {
+      final UdpSender sender = UdpSender(
+        state: controller,
+        host: widget.host,
+        port: widget.port,
+      );
+      await sender.start();
+      _sender = sender;
+      if (mounted) {
+        setState(() {
+          _connected = true;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = 'Could not send to ${widget.host}. $e');
+      }
     }
-    final UdpSender sender = UdpSender(
-      state: controller,
-      host: ipController.text.trim(),
-      port: kDefaultPort,
-    );
-    await sender.start();
-    _sender = sender;
-    setState(() => _connected = true);
+  }
+
+  void _disconnect() {
+    _sender?.stop();
+    _sender = null;
+    setState(() => _connected = false);
+    widget.onDisconnect?.call();
   }
 
   void _bindDpad(Set<DpadDirection> dirs) {
@@ -174,7 +201,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
                                 PadButtons.square, p),
                           ),
                           const SizedBox(
-                              width: NeuSizes.actionDefault, height: NeuSizes.actionDefault),
+                              width: NeuSizes.actionDefault,
+                              height: NeuSizes.actionDefault),
                           NeuButton.circle(
                             onChanged: (bool p) => controller.setButton(
                                 PadButtons.circle, p),
@@ -201,7 +229,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
                 ],
               ),
             ),
-            // Bottom bar: connection status, IP, connect.
+            // Bottom bar: connection status and disconnect.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
@@ -215,29 +243,24 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _connected ? 'Sending 60 Hz' : 'Not connected',
-                    style: const TextStyle(
-                      color: NeuColors.textMuted,
-                      fontSize: NeuSizes.labelMinFontSize,
-                    ),
-                  ),
-                  const Spacer(),
-                  SizedBox(
-                    width: 150,
-                    child: TextField(
-                      controller: ipController,
-                      decoration: const InputDecoration(
-                        labelText: 'Laptop IP',
-                        isDense: true,
+                  Expanded(
+                    child: Text(
+                      _error ??
+                          (_connected
+                              ? 'Sending 60 Hz to ${widget.host}:${widget.port}'
+                              : 'Connecting to ${widget.host}:${widget.port}...'),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: NeuColors.textMuted,
+                        fontSize: NeuSizes.labelMinFontSize,
                       ),
-                      style: const TextStyle(fontSize: 13),
                     ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    onPressed: _toggleConnection,
-                    child: Text(_connected ? 'Stop' : 'Connect'),
+                    onPressed: _disconnect,
+                    child:
+                        Text(_connected || _error != null ? 'Disconnect' : 'Back'),
                   ),
                 ],
               ),

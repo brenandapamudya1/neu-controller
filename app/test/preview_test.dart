@@ -84,7 +84,7 @@ void main() {
 
     await tester.pumpWidget(
       const MaterialApp(
-        home: ControllerScreen(),
+        home: ControllerScreen(autoConnect: false),
       ),
     );
     await tester.pumpAndSettle();

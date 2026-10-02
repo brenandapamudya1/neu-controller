@@ -23,11 +23,18 @@ Finder _shoulder(ShoulderKind kind) {
   );
 }
 
-Future<ControllerState> _pumpScreen(WidgetTester tester) async {
+Future<ControllerState> _pumpScreen(
+  WidgetTester tester, {
+  void Function()? onDisconnect,
+}) async {
   final ControllerState state = ControllerState();
   await tester.pumpWidget(
     MaterialApp(
-      home: ControllerScreen(controller: state),
+      home: ControllerScreen(
+        controller: state,
+        autoConnect: false,
+        onDisconnect: onDisconnect,
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -45,8 +52,16 @@ void main() {
     expect(find.text('Share'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Options'), findsOneWidget);
-    expect(find.text('Connect'), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('Back'), findsOneWidget);
+  });
+
+  testWidgets('disconnect button calls onDisconnect', (tester) async {
+    bool called = false;
+    await _pumpScreen(tester, onDisconnect: () => called = true);
+
+    await tester.tap(find.text('Back'));
+    await tester.pump();
+    expect(called, isTrue);
   });
 
   testWidgets('action button sets its bitmask bit', (tester) async {
