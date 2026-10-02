@@ -33,6 +33,14 @@ FAILSAFE_TIMEOUT_S: float = 0.5
 PING_MAGIC: bytes = b"\x50\x4C\x70\x67"  # "PLpg"
 PING_SIZE: int = 12  # 4 magic + 8 nonce (uint64 LE)
 
+# Server discovery (M3). App broadcasts a 5-byte query; each server
+# replies directly with its input port and hostname. Same socket,
+# separate message type, no version bump.
+DISC_MAGIC: bytes = b"\x50\x4C\x64\x73"  # "PLds"
+DISC_VERSION: int = 1
+DISC_QUERY_SIZE: int = 5  # 4 magic + 1 version
+DISC_MAX_NAME: int = 64
+
 _SEQ_MOD: int = 1 << 16
 _SEQ_HALF: int = 1 << 15
 
@@ -61,6 +69,8 @@ TRIGGER_MAX: int = 255
 
 _STRUCT = struct.Struct("<2sBHHBBbbbb")
 _PING_STRUCT = struct.Struct("<4sQ")
+_DISC_QUERY_STRUCT = struct.Struct("<4sB")
+_DISC_REPLY_STRUCT = struct.Struct("<4sBH")
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,3 +160,36 @@ def decode_ping(data: bytes | bytearray | memoryview) -> int:
     if magic != PING_MAGIC:
         raise ValueError(f"invalid ping magic: {magic!r}")
     return nonce
+
+
+def is_discovery_query(data: bytes | bytearray | memoryview) -> bool:
+    """True if `data` is a well-formed discovery query."""
+    if len(data) != DISC_QUERY_SIZE:
+        return False
+    magic, version = _DISC_QUERY_STRUCT.unpack(bytes(data))
+    return magic == DISC_MAGIC and version == DISC_VERSION
+
+
+def encode_discovery_query() -> bytes:
+    """Build the 5-byte broadcast query the app sends."""
+    return _DISC_QUERY_STRUCT.pack(DISC_MAGIC, DISC_VERSION)
+
+
+def encode_discovery_reply(port: int, name: str) -> bytes:
+    """Build a discovery reply: magic + version + input port + hostname."""
+    raw = name.encode("utf-8")[:DISC_MAX_NAME]
+    return _DISC_REPLY_STRUCT.pack(DISC_MAGIC, DISC_VERSION, int(port) & 0xFFFF) + raw
+
+
+def decode_discovery_reply(data: bytes | bytearray | memoryview) -> tuple[int, str]:
+    """Return (input port, server name) of a discovery reply."""
+    data = bytes(data)
+    if len(data) < _DISC_REPLY_STRUCT.size:
+        raise ValueError(f"discovery reply too short: {len(data)}")
+    magic, version, port = _DISC_REPLY_STRUCT.unpack(data[: _DISC_REPLY_STRUCT.size])
+    if magic != DISC_MAGIC:
+        raise ValueError(f"invalid discovery magic: {magic!r}")
+    if version != DISC_VERSION:
+        raise ValueError(f"unsupported discovery version: {version}")
+    name = data[_DISC_REPLY_STRUCT.size :][:DISC_MAX_NAME].decode("utf-8", errors="replace")
+    return port, name

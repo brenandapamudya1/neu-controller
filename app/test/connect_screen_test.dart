@@ -1,5 +1,10 @@
-// M2a tests: Connect validation, prefill, persist, callback.
+// M2a+M3b tests: Connect validation, prefill, persist, callback, scan.
 // Run with: flutter test (requires Flutter SDK).
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,14 +23,18 @@ Future<AppSettings> _loadSettings() async {
 Future<void> _pumpConnect(
   WidgetTester tester,
   AppSettings settings,
-  List<String> connected,
-) async {
+  List<String> connected, {
+  Duration scanDuration = const Duration(milliseconds: 200),
+  String discoveryTarget = '127.0.0.1',
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       home: ConnectScreen(
         settings: settings,
         onConnect: (String host, int port) =>
             connected.add('$host:$port'),
+        scanDuration: scanDuration,
+        discoveryTarget: discoveryTarget,
       ),
     ),
   );
@@ -86,5 +95,79 @@ void main() {
     expect(connected, <String>['192.168.1.9:9876']);
     expect(settings.lastIp, '192.168.1.9');
     expect(settings.lastPort, 9876);
+  });
+
+  testWidgets('empty scan shows rescan hint', (tester) async {
+    SharedPreferences.setMockInitialValues(const {});
+    final AppSettings settings = await AppSettings.load();
+    await _pumpConnect(tester, settings, <String>[]);
+
+    // No responder on loopback: scan times out with guidance.
+    expect(find.textContaining('No servers found'), findsOneWidget);
+    expect(find.text('Rescan'), findsOneWidget);
+  });
+
+  testWidgets('discovered server fills the fields on tap', (tester) async {
+    // Fake server answering discovery on loopback. Socket setup and the
+    // real-time wait run in the real async zone (runAsync), because
+    // widget tests otherwise fake the clock.
+    late RawDatagramSocket responder;
+    late StreamSubscription<void> sub;
+    await tester.runAsync(() async {
+      responder =
+          await RawDatagramSocket.bind(InternetAddress.loopbackIPv4, 0);
+      sub = responder.listen((RawSocketEvent e) {
+        if (e != RawSocketEvent.read) return;
+        final Datagram? dg = responder.receive();
+        if (dg == null || dg.data.length != 5) return;
+        final List<int> nameBytes = utf8.encode('testbox');
+        final Uint8List reply = Uint8List(7 + nameBytes.length)
+          ..setRange(0, 4, <int>[0x50, 0x4C, 0x64, 0x73])
+          ..[4] = 0x01
+          ..[5] = responder.port & 0xFF
+          ..[6] = (responder.port >> 8) & 0xFF
+          ..setRange(7, 7 + nameBytes.length, nameBytes);
+        responder.send(reply, dg.address, dg.port);
+      });
+    });
+    final int responderPort = responder.port;
+
+    SharedPreferences.setMockInitialValues(
+        <String, Object>{'last_port': responderPort});
+    final AppSettings settings = await AppSettings.load();
+    final List<String> connected = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ConnectScreen(
+          settings: settings,
+          onConnect: (String host, int port) =>
+              connected.add('$host:$port'),
+          scanDuration: const Duration(milliseconds: 300),
+          discoveryTarget: '127.0.0.1',
+        ),
+      ),
+    );
+    // Let the real socket round-trip happen, then settle fake timers.
+    await tester.runAsync(() => Future<void>.delayed(
+          const Duration(milliseconds: 700),
+        ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('testbox'), findsOneWidget);
+    await tester.tap(find.text('testbox'));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(0)).controller?.text,
+      '127.0.0.1',
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(1)).controller?.text,
+      '$responderPort',
+    );
+
+    await tester.runAsync(() async {
+      await sub.cancel();
+      responder.close();
+    });
   });
 }

@@ -20,6 +20,8 @@ from protocol import (  # noqa: E402
     FAILSAFE_TIMEOUT_S,
     InputState,
     decode,
+    encode_discovery_reply,
+    is_discovery_query,
     is_ping,
     is_seq_newer,
 )
@@ -30,8 +32,9 @@ log = logging.getLogger("padlink")
 class PadLinkProtocol(asyncio.DatagramProtocol):
     """Asyncio UDP handler. Pure validation + backend update."""
 
-    def __init__(self, backend) -> None:
+    def __init__(self, backend, port: int = DEFAULT_PORT) -> None:
         self.backend = backend
+        self.port = port
         self.transport = None
         self.last_seq: int | None = None
         self.last_time: float = 0.0
@@ -39,6 +42,7 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
         self.received = 0
         self.dropped = 0
         self.pings = 0
+        self.discoveries = 0
 
     def connection_made(self, transport) -> None:
         self.transport = transport
@@ -49,6 +53,14 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
             self.pings += 1
             if self.transport is not None:
                 self.transport.sendto(bytes(data), addr)
+            return
+
+        # Discovery query: reply with our input port + hostname.
+        if is_discovery_query(data):
+            self.discoveries += 1
+            if self.transport is not None:
+                reply = encode_discovery_reply(self.port, socket.gethostname())
+                self.transport.sendto(reply, addr)
             return
 
         try:
@@ -136,7 +148,7 @@ def _local_ips() -> list[str]:
 async def _amain(host: str, port: int, dry_run: bool) -> None:
     backend = create_backend(dry_run)
     loop = asyncio.get_running_loop()
-    proto = PadLinkProtocol(backend)
+    proto = PadLinkProtocol(backend, port=port)
     transport, _ = await loop.create_datagram_endpoint(
         lambda: proto, local_addr=(host, port)
     )

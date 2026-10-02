@@ -102,6 +102,14 @@ state or the failsafe timer. App measures round-trip per nonce
 (1 Hz) for the latency pill. Adding this message type does not alter
 the v1 input format, so no version bump.
 
+**Discovery (auxiliary, unversioned).** Same socket, separate message
+type. App broadcasts a 5-byte query — magic `0x50 0x4C 0x64 0x73`
+("PLds") + version `1` — to the LAN broadcast on the server port.
+Each server replies directly (unicast) with magic + version + input
+port uint16 LE + hostname UTF-8 (max 64 bytes). Replies never touch
+input state or the failsafe timer. If no server answers (guest WiFi
+with client isolation), the app falls back to manual IP entry.
+
 ## 6. Keamanan dan Keandalan
 
 - Server hanya menerima paket dengan magic dan version valid; paket lain dibuang.
