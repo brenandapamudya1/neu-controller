@@ -62,6 +62,30 @@ BTN_SHARE: int = 1 << 13
 BTN_HOME: int = 1 << 14
 # Bit 15 reserved.
 
+#: Human-readable names per button bit, for server input logging.
+BTN_NAMES: dict[int, str] = {
+    0: "Cross",
+    1: "Circle",
+    2: "Square",
+    3: "Triangle",
+    4: "L1",
+    5: "R1",
+    6: "L3",
+    7: "R3",
+    8: "DUp",
+    9: "DDown",
+    10: "DLeft",
+    11: "DRight",
+    12: "Options",
+    13: "Share",
+    14: "Home",
+}
+
+
+def pressed_names(buttons: int) -> list[str]:
+    """Return names of set bits, e.g. [\"Cross\", \"L1\"]. Empty when none."""
+    return [BTN_NAMES[bit] for bit in range(15) if buttons & (1 << bit)]
+
 AXIS_MIN: int = -127
 AXIS_MAX: int = 127
 TRIGGER_MIN: int = 0

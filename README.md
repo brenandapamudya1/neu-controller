@@ -61,9 +61,19 @@ latest `build-apk` run → Artifacts), so testers never need the SDK.
 
 ## Verify the virtual gamepad
 
+Watch live output two ways:
+
 ```bash
 sudo evtest            # pick the "PadLink" device, press phone buttons
 # or: jstest /dev/input/js0
+```
+
+The server itself logs every button change (`buttons: Cross+L1`,
+`(none)` on release); stick motion shows with `-v`:
+
+```bash
+python server.py --port 9876          # INFO: buttons only
+python server.py --port 9876 -v       # DEBUG: + axes 60 Hz
 ```
 
 v1 acceptance checklist (PRD §7):

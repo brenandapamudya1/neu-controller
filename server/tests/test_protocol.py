@@ -1,5 +1,6 @@
 """M0 protocol tests: round-trip, boundaries, invalid packets, seq handling."""
 
+import logging
 import pathlib
 import sys
 
@@ -11,6 +12,7 @@ from protocol import (  # noqa: E402
     decode,
     encode,
     is_seq_newer,
+    pressed_names,
 )
 
 
@@ -33,6 +35,13 @@ def test_bitmask_each_button():
     for bit in range(15):
         s = InputState(seq=bit, buttons=1 << bit)
         assert decode(encode(s)).buttons == 1 << bit
+
+
+def test_pressed_names():
+    assert pressed_names(0) == []
+    assert pressed_names(1 << 0) == ["Cross"]
+    assert pressed_names((1 << 0) | (1 << 4)) == ["Cross", "L1"]
+    assert len(pressed_names(0x7FFF)) == 15
 
 
 def test_invalid_packets_dropped():
@@ -77,7 +86,7 @@ def test_seq_wrap_around():
     assert is_seq_newer(100, 100 + 32768) is False
 
 
-def test_server_drops_old_seq_and_invalid():
+def _make_proto():
     from server import PadLinkProtocol
 
     class FakeBackend:
@@ -95,7 +104,11 @@ def test_server_drops_old_seq_and_invalid():
             pass
 
     backend = FakeBackend()
-    proto = PadLinkProtocol(backend)
+    return PadLinkProtocol(backend), backend
+
+
+def test_server_drops_old_seq_and_invalid():
+    proto, backend = _make_proto()
     addr = ("127.0.0.1", 1234)
 
     proto.datagram_received(encode(InputState(seq=10, buttons=1)), addr)
@@ -110,3 +123,33 @@ def test_server_drops_old_seq_and_invalid():
     # Newer accepted.
     proto.datagram_received(encode(InputState(seq=11, buttons=4)), addr)
     assert len(backend.updates) == 2
+
+
+def test_server_logs_button_changes_at_info(caplog):
+    proto, _ = _make_proto()
+    addr = ("127.0.0.1", 1234)
+
+    with caplog.at_level(logging.INFO, logger="padlink"):
+        proto.datagram_received(encode(InputState(seq=1, buttons=0)), addr)
+        assert any("buttons: (none)" in r.message for r in caplog.records)
+        caplog.clear()
+        # Same buttons again: no repeat INFO.
+        proto.datagram_received(encode(InputState(seq=2, buttons=0)), addr)
+        assert not [r for r in caplog.records if r.message.startswith("buttons:")]
+        # New press: INFO with names.
+        proto.datagram_received(
+            encode(InputState(seq=3, buttons=(1 << 0) | (1 << 4))), addr
+        )
+        assert any("buttons: Cross+L1" in r.message for r in caplog.records)
+
+
+def test_server_logs_axes_only_at_debug(caplog):
+    proto, _ = _make_proto()
+    addr = ("127.0.0.1", 1234)
+    proto.datagram_received(encode(InputState(seq=1, buttons=1, lx=0)), addr)
+
+    with caplog.at_level(logging.DEBUG, logger="padlink"):
+        caplog.clear()
+        proto.datagram_received(encode(InputState(seq=2, buttons=1, lx=50)), addr)
+        assert any(r.message.startswith("axes:") for r in caplog.records)
+        assert not [r for r in caplog.records if r.message.startswith("buttons:")]

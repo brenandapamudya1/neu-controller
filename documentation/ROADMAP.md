@@ -119,5 +119,6 @@ python server.py --port 9876             # butuh /dev/uinput (grup input / udev)
 - 2026-10-02: M3a selesai (ping + pill, `pytest` 11/11, `analyze` bersih, `flutter test` 50/50).
 - 2026-10-02: M3b selesai (discovery, `pytest` 16/16, `analyze` bersih, `flutter test` 57/57).
 - 2026-10-02: M3c selesai (README + troubleshooting, tanpa kode). v1 FITUR LENGKAP di Linux; sisa: uji fisik HP→laptop, backend Windows, M4 opsional.
+- 2026-10-02: Server log input — `buttons: Cross+L1` di INFO tiap berubah, axes di DEBUG (`-v`). `pytest` 19/19.
 - 2026-10-02: CI `.github/workflows/build-apk.yml` (analyze+test+APK tiap push/PR, Release + APK tiap tag `v*`, Flutter 3.47.6). README dapat section download.
 - 2026-10-02: CI fix — folder `android/` belum ada (project di-scaffold manual): `flutter create --platforms=android`, hapus file template berlebih, `local.properties` di-ignore, bereskan 7 info lint dari `analysis_options.yaml` baru.

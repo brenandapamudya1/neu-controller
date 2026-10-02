@@ -24,6 +24,7 @@ from protocol import (  # noqa: E402
     is_discovery_query,
     is_ping,
     is_seq_newer,
+    pressed_names,
 )
 
 log = logging.getLogger("padlink")
@@ -37,6 +38,7 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
         self.port = port
         self.transport = None
         self.last_seq: int | None = None
+        self.last_state: InputState | None = None
         self.last_time: float = 0.0
         self.client_addr = None
         self.received = 0
@@ -78,14 +80,48 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
         if self.client_addr != addr:
             log.info("client connected: %s", addr)
             self.client_addr = addr
+        buttons_changed = (
+            self.last_state is None or self.last_state.buttons != state.buttons
+        )
+        axes_changed = self.last_state is None or (
+            self.last_state.l2,
+            self.last_state.r2,
+            self.last_state.lx,
+            self.last_state.ly,
+            self.last_state.rx,
+            self.last_state.ry,
+        ) != (
+            state.l2,
+            state.r2,
+            state.lx,
+            state.ly,
+            state.rx,
+            state.ry,
+        )
         self.last_seq = state.seq
         self.last_time = time.monotonic()
+        self.last_state = state
         self.received += 1
         try:
             self.backend.update(state)
         except Exception:  # noqa: BLE001 - keep server alive on backend errors
             log.exception("backend update failed")
             self.dropped += 1
+            return
+        # Button presses are rare: INFO. Stick wiggles are 60 Hz: DEBUG.
+        if buttons_changed:
+            names = pressed_names(state.buttons)
+            log.info("buttons: %s", "+".join(names) if names else "(none)")
+        elif axes_changed:
+            log.debug(
+                "axes: l2=%d r2=%d lx=%d ly=%d rx=%d ry=%d",
+                state.l2,
+                state.r2,
+                state.lx,
+                state.ly,
+                state.rx,
+                state.ry,
+            )
 
 
 async def _failsafe_loop(proto: PadLinkProtocol, timeout: float = FAILSAFE_TIMEOUT_S) -> None:
