@@ -52,10 +52,16 @@ class _PadLinkAppState extends State<PadLinkApp> {
             onConnect: (String host, int port) {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => ControllerScreen(
-                    host: host,
-                    port: port,
-                    onDisconnect: () => Navigator.of(context).pop(),
+                  // Rebuilds the screen live when settings change.
+                  builder: (_) => ListenableBuilder(
+                    listenable: settings,
+                    builder: (_, __) => ControllerScreen(
+                      host: host,
+                      port: port,
+                      haptic: settings.hapticEnabled,
+                      deadzone: settings.deadzone,
+                      onDisconnect: () => Navigator.of(context).pop(),
+                    ),
                   ),
                 ),
               );

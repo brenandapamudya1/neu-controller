@@ -56,6 +56,7 @@ Catatan env: image ini ada ROS Humble system-wide yang merusak `pytest` global (
 ## M2 — Neumorphism + polish (BERJALAN, slice M2a selesai)
 
 - [x] M2a flow + persist: `AppSettings` (IP/port, haptic, dark, deadzone via `shared_preferences` — alasan: tanpa key-value bawaan), `ConnectScreen` kartu neumorphic + validasi + teks hotspot, `ControllerScreen` auto-connect + Disconnect, `main.dart` Connect → Controller (PRD §6)
+- [x] M2b device + wiring: `wakelock_plus` (alasan: tanpa API bawaan; PRD F-20) on/off di controller, haptic + deadzone settings diteruskan ke semua kontrol live via `ListenableBuilder` + 2 widget test (propagasi, deadzone lebar)
 - [ ] `core/theme.dart` — token `DESIGN.md` §2 (bg, shadowLight/Dark, textMuted, accent, ok/warn/error, warna glyph Triangle/Circle/Cross/Square), tanpa angka ajaib
 - [ ] `NeuSurface` raised/pressed (60-80 ms easeOut, knob balik 120 ms easeOutBack), efek inset via `CustomPainter` (tanpa `flutter_inset_shadow` bila bisa)
 - [ ] Haptic ringan + wakelock landscape di controller, lepas saat keluar
@@ -110,4 +111,5 @@ python server.py --port 9876             # butuh /dev/uinput (grup input / udev)
 - 2026-10-02: M1b selesai (buttons, `analyze` bersih, `flutter test` 8/8).
 - 2026-10-02: M1c selesai (joystick, `analyze` bersih, `flutter test` 12/12).
 - 2026-10-02: M1d selesai (dpad + layout, `analyze` bersih, `flutter test` 22/22). M1 TUNTAS.
-- 2026-10-02: M2a selesai (settings + connect flow, dep baru `shared_preferences` beralasan, `analyze` bersih, `flutter test` 30/30). Berikutnya M2b (wakelock + haptic/deadzone wiring) atas persetujuan user.
+- 2026-10-02: M2a selesai (settings + connect flow, dep baru `shared_preferences` beralasan, `analyze` bersih, `flutter test` 30/30).
+- 2026-10-02: M2b selesai (wakelock + wiring, dep baru `wakelock_plus` beralasan, `analyze` bersih, `flutter test` 32/32). Berikutnya M2c (overlay pengaturan + tema gelap) atas persetujuan user.

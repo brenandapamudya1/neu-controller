@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/input_state.dart';
 import '../core/theme.dart';
@@ -26,6 +27,10 @@ class ControllerScreen extends StatefulWidget {
   final bool autoConnect;
   final void Function()? onDisconnect;
 
+  /// From AppSettings (DESIGN.md 5.2). Toggled live via ListenableBuilder.
+  final bool haptic;
+  final double deadzone;
+
   const ControllerScreen({
     super.key,
     this.controller,
@@ -33,6 +38,8 @@ class ControllerScreen extends StatefulWidget {
     this.port = kDefaultPort,
     this.autoConnect = true,
     this.onDisconnect,
+    this.haptic = true,
+    this.deadzone = 0.08,
   });
 
   @override
@@ -59,6 +66,9 @@ class _ControllerScreenState extends State<ControllerScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    // Keep the screen on during play (PRD F-20). No platform plugin in
+    // widget tests, so failures there are ignored.
+    _setLocked(true);
     if (widget.autoConnect) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _connect());
     }
@@ -68,8 +78,18 @@ class _ControllerScreenState extends State<ControllerScreen> {
   void dispose() {
     _sender?.stop();
     if (_owned) controller.dispose();
+    _setLocked(false);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
+  }
+
+  /// Enables/disables the OS wakelock. Best effort: never crash the UI.
+  Future<void> _setLocked(bool locked) async {
+    try {
+      await WakelockPlus.toggle(enable: locked);
+    } catch (_) {
+      // Widget tests and unsupported platforms: ignore.
+    }
   }
 
   Future<void> _connect() async {
@@ -127,41 +147,48 @@ class _ControllerScreenState extends State<ControllerScreen> {
                 children: [
                   ShoulderButton(
                     kind: ShoulderKind.l2,
+                    haptic: widget.haptic,
                     onChanged: (bool p) => controller.setL2(p ? 255 : 0),
                   ),
                   const SizedBox(width: 8),
                   ShoulderButton(
                     kind: ShoulderKind.l1,
+                    haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.l1, p),
                   ),
                   const Spacer(),
                   CenterButton(
                     label: 'Share',
+                    haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.share, p),
                   ),
                   const SizedBox(width: 8),
                   CenterButton(
                     label: 'Home',
+                    haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.home, p),
                   ),
                   const SizedBox(width: 8),
                   CenterButton(
                     label: 'Options',
+                    haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.options, p),
                   ),
                   const Spacer(),
                   ShoulderButton(
                     kind: ShoulderKind.r1,
+                    haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.r1, p),
                   ),
                   const SizedBox(width: 8),
                   ShoulderButton(
                     kind: ShoulderKind.r2,
+                    haptic: widget.haptic,
                     onChanged: (bool p) => controller.setR2(p ? 255 : 0),
                   ),
                 ],
@@ -175,9 +202,14 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        NeuDpad(onChanged: _bindDpad),
+                        NeuDpad(
+                          onChanged: _bindDpad,
+                          haptic: widget.haptic,
+                        ),
                         NeuJoystick(
                           semanticLabel: 'Left stick',
+                          haptic: widget.haptic,
+                          deadzone: widget.deadzone,
                           onChanged: (Offset o) => controller.setLeftStick(
                             _axis(o.dx),
                             _axis(o.dy),
@@ -190,6 +222,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       NeuButton.triangle(
+                        haptic: widget.haptic,
                         onChanged: (bool p) =>
                             controller.setButton(PadButtons.triangle, p),
                       ),
@@ -197,6 +230,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           NeuButton.square(
+                            haptic: widget.haptic,
                             onChanged: (bool p) => controller.setButton(
                                 PadButtons.square, p),
                           ),
@@ -204,12 +238,14 @@ class _ControllerScreenState extends State<ControllerScreen> {
                               width: NeuSizes.actionDefault,
                               height: NeuSizes.actionDefault),
                           NeuButton.circle(
+                            haptic: widget.haptic,
                             onChanged: (bool p) => controller.setButton(
                                 PadButtons.circle, p),
                           ),
                         ],
                       ),
                       NeuButton.cross(
+                        haptic: widget.haptic,
                         onChanged: (bool p) =>
                             controller.setButton(PadButtons.cross, p),
                       ),
@@ -219,6 +255,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     child: Center(
                       child: NeuJoystick(
                         semanticLabel: 'Right stick',
+                        haptic: widget.haptic,
+                        deadzone: widget.deadzone,
                         onChanged: (Offset o) => controller.setRightStick(
                           _axis(o.dx),
                           _axis(o.dy),

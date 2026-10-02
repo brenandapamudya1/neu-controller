@@ -26,6 +26,8 @@ Finder _shoulder(ShoulderKind kind) {
 Future<ControllerState> _pumpScreen(
   WidgetTester tester, {
   void Function()? onDisconnect,
+  bool haptic = true,
+  double deadzone = 0.08,
 }) async {
   final ControllerState state = ControllerState();
   await tester.pumpWidget(
@@ -34,6 +36,8 @@ Future<ControllerState> _pumpScreen(
         controller: state,
         autoConnect: false,
         onDisconnect: onDisconnect,
+        haptic: haptic,
+        deadzone: deadzone,
       ),
     ),
   );
@@ -62,6 +66,50 @@ void main() {
     await tester.tap(find.text('Back'));
     await tester.pump();
     expect(called, isTrue);
+  });
+
+  testWidgets('haptic and deadzone propagate to all controls',
+      (tester) async {
+    await _pumpScreen(tester, haptic: false, deadzone: 0.2);
+
+    for (final NeuButton b in tester.widgetList<NeuButton>(
+      find.byType(NeuButton),
+    )) {
+      expect(b.haptic, isFalse);
+    }
+    for (final ShoulderButton b in tester.widgetList<ShoulderButton>(
+      find.byType(ShoulderButton),
+    )) {
+      expect(b.haptic, isFalse);
+    }
+    for (final NeuJoystick s in tester.widgetList<NeuJoystick>(
+      find.byType(NeuJoystick),
+    )) {
+      expect(s.haptic, isFalse);
+      expect(s.deadzone, 0.2);
+    }
+    expect(
+      tester.widget<NeuDpad>(find.byType(NeuDpad)).haptic,
+      isFalse,
+    );
+  });
+
+  testWidgets('wide deadzone swallows small stick motion', (tester) async {
+    final ControllerState state =
+        await _pumpScreen(tester, deadzone: 0.5);
+
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.bySemanticsLabel('Left stick')),
+    );
+    await tester.pump();
+    // 10 of 38 px travel ~0.26 < 0.5 deadzone.
+    await gesture.moveBy(const Offset(10, 0));
+    await tester.pump();
+    expect(state.value.lx, 0);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(state.value.lx, 0);
   });
 
   testWidgets('action button sets its bitmask bit', (tester) async {
