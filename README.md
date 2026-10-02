@@ -46,6 +46,19 @@ status under 30 ms means a healthy link.
 Without building from source, replace the phone step with: install
 the APK from `flutter build apk`, then follow step 3.
 
+## Download APK (no build needed)
+
+Tagged versions publish a ready-to-install APK on the
+[Releases page](https://github.com/brenandapamudya1/neu-controller/releases):
+
+1. On the phone, open the latest release and download the
+   `padlink-v*.apk` file.
+2. Allow "Install unknown apps" once when prompted, then install.
+3. Start the laptop server first (step 1 above), then Connect in the app.
+
+Every push to `master` also builds an APK automatically (Actions tab →
+latest `build-apk` run → Artifacts), so testers never need the SDK.
+
 ## Verify the virtual gamepad
 
 ```bash
