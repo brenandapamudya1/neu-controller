@@ -11,11 +11,13 @@ import 'neu_surface.dart';
 enum ShoulderKind {
   l1,
   l2,
+  l3,
   r1,
   r2,
+  r3,
 }
 
-/// Pill button for L1/L2/R1/R2. Sizes come from NeuSizes, never literals.
+/// Pill button for L1/L2/L3/R1/R2/R3. Sizes come from NeuSizes, never literals.
 class ShoulderButton extends StatelessWidget {
   final ShoulderKind kind;
   final ValueChanged<bool>? onChanged;
@@ -34,10 +36,14 @@ class ShoulderButton extends StatelessWidget {
         return 'L1';
       case ShoulderKind.l2:
         return 'L2';
+      case ShoulderKind.l3:
+        return 'L3';
       case ShoulderKind.r1:
         return 'R1';
       case ShoulderKind.r2:
         return 'R2';
+      case ShoulderKind.r3:
+        return 'R3';
     }
   }
 
@@ -45,6 +51,8 @@ class ShoulderButton extends StatelessWidget {
     switch (kind) {
       case ShoulderKind.l1:
       case ShoulderKind.r1:
+      case ShoulderKind.l3:
+      case ShoulderKind.r3:
         return NeuSizes.l1r1Width;
       case ShoulderKind.l2:
       case ShoulderKind.r2:
@@ -56,6 +64,8 @@ class ShoulderButton extends StatelessWidget {
     switch (kind) {
       case ShoulderKind.l1:
       case ShoulderKind.r1:
+      case ShoulderKind.l3:
+      case ShoulderKind.r3:
         return NeuSizes.l1r1Height;
       case ShoulderKind.l2:
       case ShoulderKind.r2:

@@ -52,12 +52,14 @@ void main() {
     await _pumpScreen(tester);
 
     expect(find.byType(NeuButton), findsNWidgets(4));
-    expect(find.byType(ShoulderButton), findsNWidgets(4));
+    expect(find.byType(ShoulderButton), findsNWidgets(6));
     expect(find.byType(NeuJoystick), findsNWidgets(2));
     expect(find.byType(NeuDpad), findsOneWidget);
     expect(find.text('Share'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Options'), findsOneWidget);
+    expect(find.text('L3'), findsOneWidget);
+    expect(find.text('R3'), findsOneWidget);
     expect(find.text('Back'), findsOneWidget);
   });
 
@@ -196,5 +198,28 @@ void main() {
     await gesture.up();
     await tester.pump();
     expect(state.value.buttons & PadButtons.dpadUp, isZero);
+  });
+
+  testWidgets('L3 and R3 press set their respective button bits',
+      (tester) async {
+    final ControllerState state = await _pumpScreen(tester);
+
+    final TestGesture l3Gesture = await tester
+        .startGesture(tester.getCenter(_shoulder(ShoulderKind.l3)));
+    await tester.pump();
+    expect(state.value.buttons & PadButtons.l3, isNot(0));
+
+    await l3Gesture.up();
+    await tester.pump();
+    expect(state.value.buttons & PadButtons.l3, isZero);
+
+    final TestGesture r3Gesture = await tester
+        .startGesture(tester.getCenter(_shoulder(ShoulderKind.r3)));
+    await tester.pump();
+    expect(state.value.buttons & PadButtons.r3, isNot(0));
+
+    await r3Gesture.up();
+    await tester.pump();
+    expect(state.value.buttons & PadButtons.r3, isZero);
   });
 }

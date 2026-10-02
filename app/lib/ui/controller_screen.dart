@@ -165,7 +165,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar: Left shoulders (L2, L1), Center Lightbar, Right shoulders (R1, R2).
+            // Top bar: Left shoulders (L2, L1, L3), Center Lightbar, Right shoulders (R3, R1, R2).
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
@@ -175,12 +175,19 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     haptic: widget.haptic,
                     onChanged: (bool p) => controller.setL2(p ? 255 : 0),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   ShoulderButton(
                     kind: ShoulderKind.l1,
                     haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.l1, p),
+                  ),
+                  const SizedBox(width: 6),
+                  ShoulderButton(
+                    kind: ShoulderKind.l3,
+                    haptic: widget.haptic,
+                    onChanged: (bool p) =>
+                        controller.setButton(PadButtons.l3, p),
                   ),
                   const Spacer(),
                   // Subtle PlayStation DualSense style lightbar
@@ -204,12 +211,19 @@ class _ControllerScreenState extends State<ControllerScreen> {
                   ),
                   const Spacer(),
                   ShoulderButton(
+                    kind: ShoulderKind.r3,
+                    haptic: widget.haptic,
+                    onChanged: (bool p) =>
+                        controller.setButton(PadButtons.r3, p),
+                  ),
+                  const SizedBox(width: 6),
+                  ShoulderButton(
                     kind: ShoulderKind.r1,
                     haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.r1, p),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   ShoulderButton(
                     kind: ShoulderKind.r2,
                     haptic: widget.haptic,

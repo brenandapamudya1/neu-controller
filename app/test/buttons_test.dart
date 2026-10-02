@@ -109,8 +109,10 @@ void main() {
     for (final MapEntry<ShoulderKind, List<dynamic>> entry in {
       ShoulderKind.l1: <dynamic>['L1', NeuSizes.l1r1Width, NeuSizes.l1r1Height],
       ShoulderKind.l2: <dynamic>['L2', NeuSizes.l2r2Width, NeuSizes.l2r2Height],
+      ShoulderKind.l3: <dynamic>['L3', NeuSizes.l1r1Width, NeuSizes.l1r1Height],
       ShoulderKind.r1: <dynamic>['R1', NeuSizes.l1r1Width, NeuSizes.l1r1Height],
       ShoulderKind.r2: <dynamic>['R2', NeuSizes.l2r2Width, NeuSizes.l2r2Height],
+      ShoulderKind.r3: <dynamic>['R3', NeuSizes.l1r1Width, NeuSizes.l1r1Height],
     }.entries) {
       final List<bool> events = <bool>[];
       await tester.pumpWidget(
