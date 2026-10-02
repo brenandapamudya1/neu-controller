@@ -63,12 +63,12 @@ Catatan env: image ini ada ROS Humble system-wide yang merusak `pytest` global (
 - [ ] Haptic ringan + wakelock landscape di controller, lepas saat keluar
 - [ ] Layar Connect: field IP + port default 9876 + tombol Connect + teks hotspot, simpan IP terakhir
 
-## M3 — Kenyamanan (BERJALAN, slice M3a selesai)
+## M3 — Kenyamanan (SELESAI)
 
 - [x] M3a ping: probe `PLpg` + nonce u64 echo server (tanpa ubah v1, tanpa version bump), `PingService` 1 Hz + timeout 1.5 s, `StatusPill` hijau <30 / kuning + teks / merah putus, kabel ke controller, log IP LAN di console + 8 test (py 4, dart 4+3+1)
 - [x] M3b discovery: query broadcast `PLds` + reply unicast (port + hostname), `DiscoveryService` + daftar server di Connect (tap mengisi IP/port, auto-scan saat buka), fallback IP manual + 9 test (py 5, dart 5+2)
 - [ ] Discovery UDP broadcast/QR + daftar server, simpan setting (`shared_preferences`)
-- [ ] Troubleshooting: client isolation → anjurkan hotspot HP, firewall UDP, tampilkan IP server di console
+- [x] M3c docs: `README.md` setup <2 menit + izin uinput/firewall + troubleshooting + checklist PRD §7 (jujur: Windows backend belum ada)
 - [ ] Target: setup <2 menit, rata-rata ping tercatat, nol tombol nyangkut (cabut WiFi → netral ≤1 detik)
 
 ## M4 — Lanjutan (opsional, P2)
@@ -117,4 +117,5 @@ python server.py --port 9876             # butuh /dev/uinput (grup input / udev)
 - 2026-10-02: M2b selesai (wakelock + wiring, dep baru `wakelock_plus` beralasan, `analyze` bersih, `flutter test` 32/32).
 - 2026-10-02: M2c selesai (tema gelap + sheet, tanpa dep baru, `analyze` bersih, `flutter test` 43/43). M2 TUNTAS.
 - 2026-10-02: M3a selesai (ping + pill, `pytest` 11/11, `analyze` bersih, `flutter test` 50/50).
-- 2026-10-02: M3b selesai (discovery, `pytest` 16/16, `analyze` bersih, `flutter test` 57/57). Berikutnya M3c (troubleshooting + README) atas persetujuan user.
+- 2026-10-02: M3b selesai (discovery, `pytest` 16/16, `analyze` bersih, `flutter test` 57/57).
+- 2026-10-02: M3c selesai (README + troubleshooting, tanpa kode). v1 FITUR LENGKAP di Linux; sisa: uji fisik HP→laptop, backend Windows, M4 opsional.
