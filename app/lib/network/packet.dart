@@ -10,6 +10,33 @@ const int kPacketSize = 13;
 const int kProtocolVersion = 1;
 const int kDefaultPort = 9876;
 
+/// Auxiliary latency probe (mirrors server/protocol.py ping).
+/// 12 bytes: magic 'P','L','p','g' + nonce uint64 LE. Echoed by server.
+const int kPingSize = 12;
+
+Uint8List encodePing(int nonce) {
+  final bytes = ByteData(kPingSize);
+  bytes.setUint8(0, 0x50); // 'P'
+  bytes.setUint8(1, 0x4C); // 'L'
+  bytes.setUint8(2, 0x70); // 'p'
+  bytes.setUint8(3, 0x67); // 'g'
+  bytes.setUint64(4, nonce, Endian.little);
+  return bytes.buffer.asUint8List();
+}
+
+/// Returns the echoed nonce, or null when [data] is not a pong.
+int? tryDecodePong(Uint8List data) {
+  if (data.length != kPingSize) return null;
+  final bytes = ByteData.sublistView(data);
+  if (bytes.getUint8(0) != 0x50 ||
+      bytes.getUint8(1) != 0x4C ||
+      bytes.getUint8(2) != 0x70 ||
+      bytes.getUint8(3) != 0x67) {
+    return null;
+  }
+  return bytes.getUint64(4, Endian.little);
+}
+
 Uint8List encodePacket(InputState state) {
   final bytes = ByteData(kPacketSize);
   bytes.setUint8(0, 0x50); // 'P'

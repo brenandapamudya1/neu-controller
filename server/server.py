@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import socket
 import sys
 import time
 
@@ -19,6 +20,7 @@ from protocol import (  # noqa: E402
     FAILSAFE_TIMEOUT_S,
     InputState,
     decode,
+    is_ping,
     is_seq_newer,
 )
 
@@ -30,13 +32,25 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
 
     def __init__(self, backend) -> None:
         self.backend = backend
+        self.transport = None
         self.last_seq: int | None = None
         self.last_time: float = 0.0
         self.client_addr = None
         self.received = 0
         self.dropped = 0
+        self.pings = 0
+
+    def connection_made(self, transport) -> None:
+        self.transport = transport
 
     def datagram_received(self, data: bytes, addr) -> None:
+        # Latency probe: echo back unchanged, never touches input state.
+        if is_ping(data):
+            self.pings += 1
+            if self.transport is not None:
+                self.transport.sendto(bytes(data), addr)
+            return
+
         try:
             state: InputState = decode(data)
         except ValueError as exc:
@@ -99,6 +113,26 @@ def create_backend(dry_run: bool):
         raise SystemExit(2) from exc
 
 
+def _local_ips() -> list[str]:
+    """Non-loopback IPv4 addresses for the "connect to" hint. Best effort."""
+    ips: set[str] = set()
+    try:  # primary outbound interface address (sends no traffic)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        ips.add(sock.getsockname()[0])
+        sock.close()
+    except OSError:
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = info[4][0]
+            if not ip.startswith("127."):
+                ips.add(ip)
+    except OSError:
+        pass
+    return sorted(ips)
+
+
 async def _amain(host: str, port: int, dry_run: bool) -> None:
     backend = create_backend(dry_run)
     loop = asyncio.get_running_loop()
@@ -107,6 +141,15 @@ async def _amain(host: str, port: int, dry_run: bool) -> None:
         lambda: proto, local_addr=(host, port)
     )
     log.info("listening on udp %s:%d (dry_run=%s)", host, port, dry_run)
+    addrs = _local_ips()
+    if addrs:
+        log.info(
+            "connect the app to: %s (port %d). Phone hotspot recommended.",
+            ", ".join(f"{ip}:{port}" for ip in addrs),
+            port,
+        )
+    else:
+        log.info("no LAN address found; try the phone hotspot setup.")
     failsafe = asyncio.ensure_future(_failsafe_loop(proto))
     try:
         await asyncio.Future()  # run forever

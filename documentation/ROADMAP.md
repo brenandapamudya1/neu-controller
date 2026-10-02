@@ -63,9 +63,9 @@ Catatan env: image ini ada ROS Humble system-wide yang merusak `pytest` global (
 - [ ] Haptic ringan + wakelock landscape di controller, lepas saat keluar
 - [ ] Layar Connect: field IP + port default 9876 + tombol Connect + teks hotspot, simpan IP terakhir
 
-## M3 — Kenyamanan
+## M3 — Kenyamanan (BERJALAN, slice M3a selesai)
 
-- [ ] Ping: server balas ping, `StatusPill` hijau <30 ms / kuning 30-80 ms / merah putus + teks
+- [x] M3a ping: probe `PLpg` + nonce u64 echo server (tanpa ubah v1, tanpa version bump), `PingService` 1 Hz + timeout 1.5 s, `StatusPill` hijau <30 / kuning + teks / merah putus, kabel ke controller, log IP LAN di console + 8 test (py 4, dart 4+3+1)
 - [ ] Discovery UDP broadcast/QR + daftar server, simpan setting (`shared_preferences`)
 - [ ] Troubleshooting: client isolation → anjurkan hotspot HP, firewall UDP, tampilkan IP server di console
 - [ ] Target: setup <2 menit, rata-rata ping tercatat, nol tombol nyangkut (cabut WiFi → netral ≤1 detik)
@@ -114,4 +114,5 @@ python server.py --port 9876             # butuh /dev/uinput (grup input / udev)
 - 2026-10-02: M1d selesai (dpad + layout, `analyze` bersih, `flutter test` 22/22). M1 TUNTAS.
 - 2026-10-02: M2a selesai (settings + connect flow, dep baru `shared_preferences` beralasan, `analyze` bersih, `flutter test` 30/30).
 - 2026-10-02: M2b selesai (wakelock + wiring, dep baru `wakelock_plus` beralasan, `analyze` bersih, `flutter test` 32/32).
-- 2026-10-02: M2c selesai (tema gelap + sheet, tanpa dep baru, `analyze` bersih, `flutter test` 43/43). M2 TUNTAS. Berikutnya M3 (ping + discovery) atas persetujuan user.
+- 2026-10-02: M2c selesai (tema gelap + sheet, tanpa dep baru, `analyze` bersih, `flutter test` 43/43). M2 TUNTAS.
+- 2026-10-02: M3a selesai (ping + pill, `pytest` 11/11, `analyze` bersih, `flutter test` 50/50). Berikutnya M3b (discovery) atas persetujuan user.

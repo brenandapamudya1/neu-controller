@@ -95,6 +95,13 @@ Satu paket berisi seluruh state, dikirim 60 Hz. Little-endian, 13 byte.
 
 Port default: **UDP 9876**.
 
+**Ping (auxiliary, unversioned).** Latency probe on the same socket:
+12 byte little-endian — magic `0x50 0x4C 0x70 0x67` ("PLpg") + nonce
+uint64. Server echoes the datagram unchanged without touching input
+state or the failsafe timer. App measures round-trip per nonce
+(1 Hz) for the latency pill. Adding this message type does not alter
+the v1 input format, so no version bump.
+
 ## 6. Keamanan dan Keandalan
 
 - Server hanya menerima paket dengan magic dan version valid; paket lain dibuang.

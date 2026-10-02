@@ -10,6 +10,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../core/input_state.dart';
 import '../core/theme.dart';
 import '../network/packet.dart';
+import '../network/ping_service.dart';
 import '../network/udp_sender.dart';
 import '../settings/app_settings.dart';
 import 'settings_sheet.dart';
@@ -18,6 +19,7 @@ import 'widgets/neu_button.dart';
 import 'widgets/neu_dpad.dart';
 import 'widgets/neu_joystick.dart';
 import 'widgets/shoulder_button.dart';
+import 'widgets/status_pill.dart';
 
 class ControllerScreen extends StatefulWidget {
   /// Injected for tests; the screen owns and disposes it when absent.
@@ -57,6 +59,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
   late final ControllerState controller;
   bool _owned = false;
   UdpSender? _sender;
+  PingService? _ping;
   bool _connected = false;
   String? _error;
 
@@ -84,6 +87,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
   @override
   void dispose() {
     _sender?.stop();
+    _ping?.dispose();
+    _ping = null;
     if (_owned) controller.dispose();
     _setLocked(false);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -107,7 +112,13 @@ class _ControllerScreenState extends State<ControllerScreen> {
         port: widget.port,
       );
       await sender.start();
+      final PingService ping = PingService(
+        host: widget.host,
+        port: widget.port,
+      );
+      await ping.start();
       _sender = sender;
+      _ping = ping;
       if (mounted) {
         setState(() {
           _connected = true;
@@ -124,6 +135,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
   void _disconnect() {
     _sender?.stop();
     _sender = null;
+    _ping?.dispose();
+    _ping = null;
     setState(() => _connected = false);
     widget.onDisconnect?.call();
   }
@@ -275,26 +288,22 @@ class _ControllerScreenState extends State<ControllerScreen> {
                 ],
               ),
             ),
-            // Bottom bar: connection status and disconnect.
+            // Bottom bar: latency pill, address/error, actions.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _connected ? palette.ok : palette.error,
-                    ),
-                  ),
+                  if (_ping != null)
+                    ValueListenableBuilder<int?>(
+                      valueListenable: _ping!.rttMs,
+                      builder: (_, int? rtt, __) => StatusPill(rttMs: rtt),
+                    )
+                  else
+                    const StatusPill(rttMs: null),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _error ??
-                          (_connected
-                              ? 'Sending 60 Hz to ${widget.host}:${widget.port}'
-                              : 'Connecting to ${widget.host}:${widget.port}...'),
+                      _error ?? '${widget.host}:${widget.port}',
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: palette.textMuted,

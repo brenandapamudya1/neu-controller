@@ -27,6 +27,12 @@ PACKET_SIZE: int = 13
 DEFAULT_PORT: int = 9876
 FAILSAFE_TIMEOUT_S: float = 0.5
 
+# Auxiliary ping (latency probe). Separate message type on the same UDP
+# socket; echo the datagram back unchanged. Does NOT alter the v1 input
+# format above, so no version bump is needed.
+PING_MAGIC: bytes = b"\x50\x4C\x70\x67"  # "PLpg"
+PING_SIZE: int = 12  # 4 magic + 8 nonce (uint64 LE)
+
 _SEQ_MOD: int = 1 << 16
 _SEQ_HALF: int = 1 << 15
 
@@ -54,6 +60,7 @@ TRIGGER_MIN: int = 0
 TRIGGER_MAX: int = 255
 
 _STRUCT = struct.Struct("<2sBHHBBbbbb")
+_PING_STRUCT = struct.Struct("<4sQ")
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,3 +128,25 @@ def decode(data: bytes | bytearray | memoryview) -> InputState:
     return InputState(
         seq=seq, buttons=buttons, l2=l2, r2=r2, lx=lx, ly=ly, rx=rx, ry=ry
     )
+
+
+def is_ping(data: bytes | bytearray | memoryview) -> bool:
+    """True if `data` is a well-formed ping probe (not a v1 packet)."""
+    if len(data) != PING_SIZE:
+        return False
+    return bytes(data[:4]) == PING_MAGIC
+
+
+def encode_ping(nonce: int) -> bytes:
+    """Build a 12-byte ping probe carrying `nonce` (uint64)."""
+    return _PING_STRUCT.pack(PING_MAGIC, int(nonce) & 0xFFFFFFFFFFFFFFFF)
+
+
+def decode_ping(data: bytes | bytearray | memoryview) -> int:
+    """Return the nonce of a ping probe. Raises ValueError if malformed."""
+    if len(data) != PING_SIZE:
+        raise ValueError(f"invalid ping length: expected {PING_SIZE}, got {len(data)}")
+    magic, nonce = _PING_STRUCT.unpack(bytes(data))
+    if magic != PING_MAGIC:
+        raise ValueError(f"invalid ping magic: {magic!r}")
+    return nonce

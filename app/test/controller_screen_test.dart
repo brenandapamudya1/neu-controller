@@ -61,6 +61,12 @@ void main() {
     expect(find.text('Back'), findsOneWidget);
   });
 
+  testWidgets('shows Disconnected pill before connecting',
+      (tester) async {
+    await _pumpScreen(tester);
+    expect(find.text('Disconnected'), findsOneWidget);
+  });
+
   testWidgets('disconnect button calls onDisconnect', (tester) async {
     bool called = false;
     await _pumpScreen(tester, onDisconnect: () => called = true);
