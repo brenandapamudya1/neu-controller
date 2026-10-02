@@ -10,6 +10,8 @@ import 'package:padlink/ui/widgets/neu_button.dart';
 import 'package:padlink/ui/widgets/neu_dpad.dart';
 import 'package:padlink/ui/widgets/neu_joystick.dart';
 import 'package:padlink/ui/widgets/shoulder_button.dart';
+import 'package:padlink/settings/app_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Finder _actionButton(ActionGlyphKind glyph) {
   return find.byWidgetPredicate(
@@ -66,6 +68,27 @@ void main() {
     await tester.tap(find.text('Back'));
     await tester.pump();
     expect(called, isTrue);
+  });
+
+  testWidgets('gear opens settings sheet', (tester) async {
+    SharedPreferences.setMockInitialValues(const {});
+    final AppSettings settings = await AppSettings.load();
+    final ControllerState state = ControllerState();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ControllerScreen(
+          controller: state,
+          autoConnect: false,
+          settings: settings,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pumpAndSettle();
+    expect(find.text('Dark mode'), findsOneWidget);
+    expect(find.text('Haptic feedback'), findsOneWidget);
   });
 
   testWidgets('haptic and deadzone propagate to all controls',

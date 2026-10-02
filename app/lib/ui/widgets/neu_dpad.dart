@@ -174,6 +174,7 @@ class _Segment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NeuPalette palette = NeuTheme.of(context);
     return NeuSurface(
       width: _cell,
       height: _cell,
@@ -184,7 +185,7 @@ class _Segment extends StatelessWidget {
         quarterTurns: quarterTurns,
         child: ActionGlyph(
           kind: ActionGlyphKind.triangle,
-          color: active ? NeuColors.accent : NeuColors.textMuted,
+          color: active ? palette.accent : palette.textMuted,
           size: _arrowSize,
         ),
       ),

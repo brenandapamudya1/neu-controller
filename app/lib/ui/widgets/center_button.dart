@@ -22,6 +22,7 @@ class CenterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NeuPalette palette = NeuTheme.of(context);
     return NeuPressable(
       onChanged: onChanged,
       haptic: haptic,
@@ -36,7 +37,7 @@ class CenterButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: pressed ? NeuColors.accent : NeuColors.textMuted,
+              color: pressed ? palette.accent : palette.textMuted,
               fontSize: NeuSizes.labelMinFontSize,
               fontWeight: FontWeight.w600,
             ),

@@ -116,3 +116,78 @@ abstract final class NeuMotion {
   static const Duration knobReturn = Duration(milliseconds: 120);
   static const Curve knobReturnCurve = Curves.easeOutBack;
 }
+
+/// Full neumorphic palette: every color that changes between light and
+/// dark mode. Glyph colors stay vivid in both (readable on either bg).
+@immutable
+class NeuPalette {
+  final Color bg;
+  final Color bgPressed;
+  final Color shadowLight;
+  final Color shadowDark;
+  final Color textMuted;
+  final Color accent;
+  final Color ok;
+  final Color warn;
+  final Color error;
+
+  const NeuPalette({
+    required this.bg,
+    required this.bgPressed,
+    required this.shadowLight,
+    required this.shadowDark,
+    required this.textMuted,
+    required this.accent,
+    required this.ok,
+    required this.warn,
+    required this.error,
+  });
+
+  static const NeuPalette light = NeuPalette(
+    bg: NeuColors.bg,
+    bgPressed: NeuColors.bgPressed,
+    shadowLight: NeuColors.shadowLight,
+    shadowDark: NeuColors.shadowDark,
+    textMuted: NeuColors.textMuted,
+    accent: NeuColors.accent,
+    ok: NeuColors.ok,
+    warn: NeuColors.warn,
+    error: NeuColors.error,
+  );
+
+  static const NeuPalette dark = NeuPalette(
+    bg: NeuDarkColors.bg,
+    bgPressed: NeuDarkColors.bgPressed,
+    shadowLight: NeuDarkColors.shadowLight,
+    shadowDark: NeuDarkColors.shadowDark,
+    textMuted: NeuColors.textMuted,
+    accent: NeuColors.accent,
+    ok: NeuColors.ok,
+    warn: NeuColors.warn,
+    error: NeuColors.error,
+  );
+}
+
+/// Provides the active [NeuPalette] down the widget tree.
+/// Falls back to [NeuPalette.light] when absent (e.g. older tests).
+class NeuTheme extends InheritedWidget {
+  final NeuPalette palette;
+
+  const NeuTheme({
+    super.key,
+    required this.palette,
+    required super.child,
+  });
+
+  static NeuPalette of(BuildContext context) {
+    return context
+            .dependOnInheritedWidgetOfExactType<NeuTheme>()
+            ?.palette ??
+        NeuPalette.light;
+  }
+
+  @override
+  bool updateShouldNotify(NeuTheme oldWidget) {
+    return palette != oldWidget.palette;
+  }
+}

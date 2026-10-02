@@ -61,8 +61,9 @@ class _ConnectScreenState extends State<ConnectScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final NeuPalette palette = NeuTheme.of(context);
     return Scaffold(
-      backgroundColor: NeuColors.bg,
+      backgroundColor: palette.bg,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -75,22 +76,22 @@ class _ConnectScreenState extends State<ConnectScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     'PadLink',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: NeuColors.textMuted,
+                      color: palette.textMuted,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Make sure the phone and laptop are on the same '
                     'network, or use the phone hotspot.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: NeuColors.textMuted,
+                      color: palette.textMuted,
                       fontSize: NeuSizes.labelMinFontSize,
                     ),
                   ),
@@ -115,7 +116,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
                     const SizedBox(height: 12),
                     Text(
                       _error!,
-                      style: const TextStyle(color: NeuColors.error),
+                      style: TextStyle(color: palette.error),
                     ),
                   ],
                   const SizedBox(height: 20),

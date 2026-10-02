@@ -66,6 +66,7 @@ class ShoulderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String text = label;
+    final NeuPalette palette = NeuTheme.of(context);
     return NeuPressable(
       onChanged: onChanged,
       haptic: haptic,
@@ -80,7 +81,7 @@ class ShoulderButton extends StatelessWidget {
           child: Text(
             text,
             style: TextStyle(
-              color: pressed ? NeuColors.accent : NeuColors.textMuted,
+              color: pressed ? palette.accent : palette.textMuted,
               fontSize: NeuSizes.controlLabelFontSize,
               fontWeight: FontWeight.w600,
             ),

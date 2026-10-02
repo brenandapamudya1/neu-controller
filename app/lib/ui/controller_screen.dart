@@ -11,6 +11,8 @@ import '../core/input_state.dart';
 import '../core/theme.dart';
 import '../network/packet.dart';
 import '../network/udp_sender.dart';
+import '../settings/app_settings.dart';
+import 'settings_sheet.dart';
 import 'widgets/center_button.dart';
 import 'widgets/neu_button.dart';
 import 'widgets/neu_dpad.dart';
@@ -31,6 +33,10 @@ class ControllerScreen extends StatefulWidget {
   final bool haptic;
   final double deadzone;
 
+  /// Enables the gear button opening the settings sheet. Hidden in
+  /// goldens/tests that do not pass settings.
+  final AppSettings? settings;
+
   const ControllerScreen({
     super.key,
     this.controller,
@@ -40,6 +46,7 @@ class ControllerScreen extends StatefulWidget {
     this.onDisconnect,
     this.haptic = true,
     this.deadzone = 0.08,
+    this.settings,
   });
 
   @override
@@ -135,8 +142,9 @@ class _ControllerScreenState extends State<ControllerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final NeuPalette palette = NeuTheme.of(context);
     return Scaffold(
-      backgroundColor: NeuColors.bg,
+      backgroundColor: palette.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -277,7 +285,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     height: 10,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _connected ? NeuColors.ok : NeuColors.error,
+                      color: _connected ? palette.ok : palette.error,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -288,8 +296,8 @@ class _ControllerScreenState extends State<ControllerScreen> {
                               ? 'Sending 60 Hz to ${widget.host}:${widget.port}'
                               : 'Connecting to ${widget.host}:${widget.port}...'),
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: NeuColors.textMuted,
+                      style: TextStyle(
+                        color: palette.textMuted,
                         fontSize: NeuSizes.labelMinFontSize,
                       ),
                     ),
@@ -300,6 +308,17 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     child:
                         Text(_connected || _error != null ? 'Disconnect' : 'Back'),
                   ),
+                  if (widget.settings != null)
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      color: palette.textMuted,
+                      tooltip: 'Settings',
+                      onPressed: () => showSettingsSheet(
+                        context: context,
+                        settings: widget.settings!,
+                        onDisconnect: _disconnect,
+                      ),
+                    ),
                 ],
               ),
             ),

@@ -93,4 +93,25 @@ void main() {
       matchesGoldenFile('goldens/controller.png'),
     );
   });
+
+  testWidgets('preview dark controller screen', (tester) async {
+    tester.view.physicalSize = const Size(800, 360);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: NeuTheme(
+          palette: NeuPalette.dark,
+          child: ControllerScreen(autoConnect: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(ControllerScreen),
+      matchesGoldenFile('goldens/controller_dark.png'),
+    );
+  });
 }

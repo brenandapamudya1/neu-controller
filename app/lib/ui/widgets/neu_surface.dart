@@ -21,8 +21,10 @@ class NeuSurface extends StatelessWidget {
   final NeuSurfaceShape shape;
   final double borderRadius;
   final bool small;
-  final Color color;
-  final Color pressedColor;
+
+  /// Null means "use the active [NeuTheme] palette".
+  final Color? color;
+  final Color? pressedColor;
   final EdgeInsetsGeometry? padding;
 
   const NeuSurface({
@@ -34,8 +36,8 @@ class NeuSurface extends StatelessWidget {
     this.shape = NeuSurfaceShape.roundedRect,
     this.borderRadius = NeuSizes.defaultRadius,
     this.small = false,
-    this.color = NeuColors.bg,
-    this.pressedColor = NeuColors.bgPressed,
+    this.color,
+    this.pressedColor,
     this.padding,
   });
 
@@ -46,8 +48,8 @@ class NeuSurface extends StatelessWidget {
     this.pressed = false,
     double diameter = NeuSizes.actionDefault,
     this.small = false,
-    this.color = NeuColors.bg,
-    this.pressedColor = NeuColors.bgPressed,
+    this.color,
+    this.pressedColor,
     this.padding,
   })  : width = diameter,
         height = diameter,
@@ -56,9 +58,15 @@ class NeuSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NeuPalette palette = NeuTheme.of(context);
     final bool isCircle = shape == NeuSurfaceShape.circle;
-    final List<BoxShadow> shadows =
-        pressed ? const [] : (small ? NeuShadows.raisedSmall() : NeuShadows.raised());
+    final List<BoxShadow> shadows = pressed
+        ? const []
+        : (small
+            ? NeuShadows.raisedSmall(
+                dark: palette.shadowDark, light: palette.shadowLight)
+            : NeuShadows.raised(
+                dark: palette.shadowDark, light: palette.shadowLight));
 
     return AnimatedContainer(
       duration: NeuMotion.press,
@@ -67,7 +75,7 @@ class NeuSurface extends StatelessWidget {
       height: height,
       padding: padding,
       decoration: BoxDecoration(
-        color: pressed ? pressedColor : color,
+        color: pressed ? (pressedColor ?? palette.bgPressed) : (color ?? palette.bg),
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: isCircle ? null : BorderRadius.circular(borderRadius),
         boxShadow: shadows,
@@ -84,6 +92,8 @@ class NeuSurface extends StatelessWidget {
                 painter: _NeuInsetPainter(
                   circle: isCircle,
                   radius: borderRadius,
+                  shadowDark: palette.shadowDark,
+                  shadowLight: palette.shadowLight,
                 ),
               ),
             ),
@@ -100,8 +110,15 @@ class NeuSurface extends StatelessWidget {
 class _NeuInsetPainter extends CustomPainter {
   final bool circle;
   final double radius;
+  final Color shadowDark;
+  final Color shadowLight;
 
-  _NeuInsetPainter({required this.circle, required this.radius});
+  _NeuInsetPainter({
+    required this.circle,
+    required this.radius,
+    required this.shadowDark,
+    required this.shadowLight,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -119,19 +136,19 @@ class _NeuInsetPainter extends CustomPainter {
 
     // Dark inner edge (top-left). Reversed vs raised outer shadow.
     final Paint dark = Paint()
-      ..shader = const LinearGradient(
+      ..shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.center,
-        colors: [Color(0x4DA3B1C6), Color(0x00A3B1C6)],
+        colors: [shadowDark.withAlpha(77), shadowDark.withAlpha(0)],
       ).createShader(rect);
     canvas.drawRect(rect, dark);
 
     // Light inner edge (bottom-right).
     final Paint light = Paint()
-      ..shader = const LinearGradient(
+      ..shader = LinearGradient(
         begin: Alignment.bottomRight,
         end: Alignment.center,
-        colors: [Color(0x99FFFFFF), Color(0x00FFFFFF)],
+        colors: [shadowLight.withAlpha(153), shadowLight.withAlpha(0)],
       ).createShader(rect);
     canvas.drawRect(rect, light);
 
@@ -140,6 +157,9 @@ class _NeuInsetPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _NeuInsetPainter oldDelegate) {
-    return oldDelegate.circle != circle || oldDelegate.radius != radius;
+    return oldDelegate.circle != circle ||
+        oldDelegate.radius != radius ||
+        oldDelegate.shadowDark != shadowDark ||
+        oldDelegate.shadowLight != shadowLight;
   }
 }

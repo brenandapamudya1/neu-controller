@@ -126,6 +126,7 @@ class _NeuJoystickState extends State<NeuJoystick>
   @override
   Widget build(BuildContext context) {
     final bool active = _pointer != null;
+    final NeuPalette palette = NeuTheme.of(context);
     final double rest = (widget.baseDiameter - widget.knobDiameter) / 2;
     return Semantics(
       label: widget.semanticLabel,
@@ -159,8 +160,8 @@ class _NeuJoystickState extends State<NeuJoystick>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: active
-                            ? NeuColors.accent
-                            : NeuColors.textMuted,
+                            ? palette.accent
+                            : palette.textMuted,
                       ),
                     ),
                   ),
