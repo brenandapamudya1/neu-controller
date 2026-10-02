@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:padlink/core/theme.dart';
+import 'package:padlink/ui/controller_screen.dart';
 import 'package:padlink/ui/widgets/neu_button.dart';
 import 'package:padlink/ui/widgets/neu_joystick.dart';
 import 'package:padlink/ui/widgets/shoulder_button.dart';
@@ -72,6 +73,24 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile('goldens/preview.png'),
+    );
+  });
+
+  testWidgets('preview full controller screen (landscape)', (tester) async {
+    tester.view.physicalSize = const Size(800, 360);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ControllerScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(ControllerScreen),
+      matchesGoldenFile('goldens/controller.png'),
     );
   });
 }

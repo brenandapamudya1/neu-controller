@@ -82,6 +82,40 @@ class ControllerState extends ValueNotifier<InputState> {
     }
   }
 
+  /// Stick deflection in protocol units (-127..127). Clamped.
+  void setLeftStick(int x, int y) {
+    final int cx = x.clamp(-127, 127);
+    final int cy = y.clamp(-127, 127);
+    if (cx != value.lx || cy != value.ly) {
+      value = value.copyWith(lx: cx, ly: cy);
+    }
+  }
+
+  /// Stick deflection in protocol units (-127..127). Clamped.
+  void setRightStick(int x, int y) {
+    final int cx = x.clamp(-127, 127);
+    final int cy = y.clamp(-127, 127);
+    if (cx != value.rx || cy != value.ry) {
+      value = value.copyWith(rx: cx, ry: cy);
+    }
+  }
+
+  /// Trigger value 0..255. Clamped. Used for L2/R2 on/off in v1.
+  void setL2(int v) {
+    final int c = v.clamp(0, 255);
+    if (c != value.l2) {
+      value = value.copyWith(l2: c);
+    }
+  }
+
+  /// Trigger value 0..255. Clamped. Used for L2/R2 on/off in v1.
+  void setR2(int v) {
+    final int c = v.clamp(0, 255);
+    if (c != value.r2) {
+      value = value.copyWith(r2: c);
+    }
+  }
+
   void reset() {
     value = const InputState();
   }
