@@ -18,6 +18,8 @@ import 'widgets/center_button.dart';
 import 'widgets/neu_button.dart';
 import 'widgets/neu_dpad.dart';
 import 'widgets/neu_joystick.dart';
+import 'widgets/neu_pressable.dart';
+import 'widgets/neu_surface.dart';
 import 'widgets/shoulder_button.dart';
 import 'widgets/status_pill.dart';
 
@@ -76,6 +78,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     // Keep the screen on during play (PRD F-20). No platform plugin in
     // widget tests, so failures there are ignored.
     _setLocked(true);
@@ -91,6 +94,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
     _ping = null;
     if (_owned) controller.dispose();
     _setLocked(false);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
@@ -161,9 +165,9 @@ class _ControllerScreenState extends State<ControllerScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar: shoulders outside, center buttons middle.
+            // Top bar: Left shoulders (L2, L1), Center Lightbar, Right shoulders (R1, R2).
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
                 children: [
                   ShoulderButton(
@@ -179,25 +183,24 @@ class _ControllerScreenState extends State<ControllerScreen> {
                         controller.setButton(PadButtons.l1, p),
                   ),
                   const Spacer(),
-                  CenterButton(
-                    label: 'Share',
-                    haptic: widget.haptic,
-                    onChanged: (bool p) =>
-                        controller.setButton(PadButtons.share, p),
-                  ),
-                  const SizedBox(width: 8),
-                  CenterButton(
-                    label: 'Home',
-                    haptic: widget.haptic,
-                    onChanged: (bool p) =>
-                        controller.setButton(PadButtons.home, p),
-                  ),
-                  const SizedBox(width: 8),
-                  CenterButton(
-                    label: 'Options',
-                    haptic: widget.haptic,
-                    onChanged: (bool p) =>
-                        controller.setButton(PadButtons.options, p),
+                  // Subtle PlayStation DualSense style lightbar
+                  Container(
+                    width: 72,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: _connected
+                          ? palette.ok
+                          : palette.accent.withAlpha(140),
+                      borderRadius: BorderRadius.circular(2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (_connected ? palette.ok : palette.accent)
+                              .withAlpha(90),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
                   ),
                   const Spacer(),
                   ShoulderButton(
@@ -215,72 +218,166 @@ class _ControllerScreenState extends State<ControllerScreen> {
                 ],
               ),
             ),
-            // Middle: D-pad + left stick | action diamond | right stick.
+            // Middle: PlayStation DualShock layout.
+            // Left wing: D-Pad (upper-left) + Left Stick (lower-right, inward).
+            // Center: Touchpad + Share/Options + Home (PS) button.
+            // Right wing: Right Stick (lower-left, inward) + Action Diamond (upper-right).
             Expanded(
               child: Row(
                 children: [
+                  // Left Wing (Grip Pod)
                   Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        NeuDpad(
-                          onChanged: _bindDpad,
-                          haptic: widget.haptic,
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(8, 2, 4, 4),
+                      decoration: BoxDecoration(
+                        color: palette.bg,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: NeuShadows.raisedSmall(
+                          dark: palette.shadowDark,
+                          light: palette.shadowLight,
                         ),
-                        NeuJoystick(
-                          semanticLabel: 'Left stick',
-                          haptic: widget.haptic,
-                          deadzone: widget.deadzone,
-                          onChanged: (Offset o) => controller.setLeftStick(
-                            _axis(o.dx),
-                            _axis(o.dy),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Align(
+                              alignment: const Alignment(0, -0.35),
+                              child: NeuDpad(
+                                onChanged: _bindDpad,
+                                haptic: widget.haptic,
+                              ),
+                            ),
+                            Align(
+                              alignment: const Alignment(0, 0.4),
+                              child: NeuJoystick(
+                                semanticLabel: 'Left stick',
+                                baseDiameter: 130,
+                                knobDiameter: 54,
+                                haptic: widget.haptic,
+                                deadzone: widget.deadzone,
+                                onChanged: (Offset o) => controller.setLeftStick(
+                                  _axis(o.dx),
+                                  _axis(o.dy),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Center Console: PlayStation Touchpad, Share, Options, Home (PS)
+                  SizedBox(
+                    width: 114,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CenterButton(
+                              label: 'Share',
+                              haptic: widget.haptic,
+                              onChanged: (bool p) =>
+                                  controller.setButton(PadButtons.share, p),
+                            ),
+                            const SizedBox(width: 6),
+                            CenterButton(
+                              label: 'Options',
+                              haptic: widget.haptic,
+                              onChanged: (bool p) =>
+                                  controller.setButton(PadButtons.options, p),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        NeuSurface(
+                          width: 104,
+                          height: 56,
+                          pressed: true,
+                          borderRadius: 12,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 2.5,
+                                  decoration: BoxDecoration(
+                                    color: palette.textMuted.withAlpha(70),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'TOUCHPAD',
+                                  style: TextStyle(
+                                    color: palette.textMuted.withAlpha(110),
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+                        const Spacer(),
+                        CenterButton(
+                          label: 'Home',
+                          haptic: widget.haptic,
+                          onChanged: (bool p) =>
+                              controller.setButton(PadButtons.home, p),
+                        ),
+                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      NeuButton.triangle(
-                        haptic: widget.haptic,
-                        onChanged: (bool p) =>
-                            controller.setButton(PadButtons.triangle, p),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          NeuButton.square(
-                            haptic: widget.haptic,
-                            onChanged: (bool p) => controller.setButton(
-                                PadButtons.square, p),
-                          ),
-                          const SizedBox(
-                              width: NeuSizes.actionDefault,
-                              height: NeuSizes.actionDefault),
-                          NeuButton.circle(
-                            haptic: widget.haptic,
-                            onChanged: (bool p) => controller.setButton(
-                                PadButtons.circle, p),
-                          ),
-                        ],
-                      ),
-                      NeuButton.cross(
-                        haptic: widget.haptic,
-                        onChanged: (bool p) =>
-                            controller.setButton(PadButtons.cross, p),
-                      ),
-                    ],
-                  ),
+                  // Right Wing (Grip Pod)
                   Expanded(
-                    child: Center(
-                      child: NeuJoystick(
-                        semanticLabel: 'Right stick',
-                        haptic: widget.haptic,
-                        deadzone: widget.deadzone,
-                        onChanged: (Offset o) => controller.setRightStick(
-                          _axis(o.dx),
-                          _axis(o.dy),
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(4, 2, 8, 4),
+                      decoration: BoxDecoration(
+                        color: palette.bg,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: NeuShadows.raisedSmall(
+                          dark: palette.shadowDark,
+                          light: palette.shadowLight,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Align(
+                              alignment: const Alignment(0, 0.4),
+                              child: NeuJoystick(
+                                semanticLabel: 'Right stick',
+                                baseDiameter: 130,
+                                knobDiameter: 54,
+                                haptic: widget.haptic,
+                                deadzone: widget.deadzone,
+                                onChanged: (Offset o) =>
+                                    controller.setRightStick(
+                                  _axis(o.dx),
+                                  _axis(o.dy),
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: const Alignment(0, -0.35),
+                              child: _ActionDiamond(
+                                haptic: widget.haptic,
+                                controller: controller,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -288,9 +385,9 @@ class _ControllerScreenState extends State<ControllerScreen> {
                 ],
               ),
             ),
-            // Bottom bar: latency pill, address/error, actions.
+            // Bottom bar: latency pill, address/error, neumorphic disconnect & settings.
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
                 children: [
                   if (_ping != null)
@@ -300,7 +397,7 @@ class _ControllerScreenState extends State<ControllerScreen> {
                     )
                   else
                     const StatusPill(rttMs: null),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       _error ?? '${widget.host}:${widget.port}',
@@ -311,24 +408,136 @@ class _ControllerScreenState extends State<ControllerScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _disconnect,
-                    child:
-                        Text(_connected || _error != null ? 'Disconnect' : 'Back'),
+                  const SizedBox(width: 10),
+                  NeuPressable(
+                    onChanged: (bool p) {
+                      if (!p) _disconnect();
+                    },
+                    haptic: widget.haptic,
+                    semanticLabel:
+                        _connected || _error != null ? 'Disconnect' : 'Back',
+                    builder: (BuildContext context, bool pressed) {
+                      return NeuSurface(
+                        pressed: pressed,
+                        small: true,
+                        borderRadius: NeuSizes.pillRadius,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Text(
+                          _connected || _error != null ? 'Disconnect' : 'Back',
+                          style: TextStyle(
+                            color: palette.textMuted,
+                            fontSize: NeuSizes.labelMinFontSize,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   if (widget.settings != null)
-                    IconButton(
-                      icon: const Icon(Icons.settings),
-                      color: palette.textMuted,
-                      tooltip: 'Settings',
-                      onPressed: () => showSettingsSheet(
-                        context: context,
-                        settings: widget.settings!,
-                        onDisconnect: _disconnect,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: NeuPressable(
+                        onChanged: (bool p) {
+                          if (!p) {
+                            showSettingsSheet(
+                              context: context,
+                              settings: widget.settings!,
+                              onDisconnect: _disconnect,
+                            );
+                          }
+                        },
+                        haptic: widget.haptic,
+                        semanticLabel: 'Settings',
+                        builder: (BuildContext context, bool pressed) {
+                          return NeuSurface.circle(
+                            diameter: 36,
+                            pressed: pressed,
+                            small: true,
+                            child: Icon(
+                              Icons.settings,
+                              size: 18,
+                              color: palette.textMuted,
+                            ),
+                          );
+                        },
                       ),
                     ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// PlayStation action button diamond: Triangle (top), Square (left),
+/// Circle (right), Cross (bottom), centered in a 150 dp square matching NeuDpad.
+class _ActionDiamond extends StatelessWidget {
+  final bool haptic;
+  final ControllerState controller;
+
+  const _ActionDiamond({
+    required this.haptic,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const double size = NeuSizes.dpadTotal; // 150 dp
+    const double btnSize = 54;
+    const double offset = (size - btnSize) / 2; // 48 dp
+
+    return Semantics(
+      label: 'Action buttons',
+      child: SizedBox.square(
+        dimension: size,
+        child: Stack(
+          children: [
+            // Triangle (top)
+            Positioned(
+              top: 0,
+              left: offset,
+              child: NeuButton.triangle(
+                diameter: btnSize,
+                haptic: haptic,
+                onChanged: (bool p) =>
+                    controller.setButton(PadButtons.triangle, p),
+              ),
+            ),
+            // Square (left)
+            Positioned(
+              top: offset,
+              left: 0,
+              child: NeuButton.square(
+                diameter: btnSize,
+                haptic: haptic,
+                onChanged: (bool p) =>
+                    controller.setButton(PadButtons.square, p),
+              ),
+            ),
+            // Circle (right)
+            Positioned(
+              top: offset,
+              right: 0,
+              child: NeuButton.circle(
+                diameter: btnSize,
+                haptic: haptic,
+                onChanged: (bool p) =>
+                    controller.setButton(PadButtons.circle, p),
+              ),
+            ),
+            // Cross (bottom)
+            Positioned(
+              bottom: 0,
+              left: offset,
+              child: NeuButton.cross(
+                diameter: btnSize,
+                haptic: haptic,
+                onChanged: (bool p) =>
+                    controller.setButton(PadButtons.cross, p),
               ),
             ),
           ],
