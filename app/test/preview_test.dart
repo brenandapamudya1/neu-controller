@@ -16,7 +16,7 @@ import 'package:padlink/ui/widgets/shoulder_button.dart';
 void main() {
   testWidgets('preview landscape widget board', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           backgroundColor: NeuColors.bg,
           body: Center(
@@ -27,7 +27,7 @@ void main() {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Column(
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ShoulderButton(kind: ShoulderKind.l2, haptic: false),
@@ -35,8 +35,8 @@ void main() {
                       ShoulderButton(kind: ShoulderKind.l1, haptic: false),
                     ],
                   ),
-                  const NeuJoystick(haptic: false),
-                  const Column(
+                  NeuJoystick(haptic: false),
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       NeuButton.triangle(haptic: false),
@@ -53,8 +53,8 @@ void main() {
                       ),
                     ],
                   ),
-                  const NeuJoystick(haptic: false),
-                  const Column(
+                  NeuJoystick(haptic: false),
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ShoulderButton(kind: ShoulderKind.r2, haptic: false),

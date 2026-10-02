@@ -143,7 +143,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _portController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Port',
                       hintText: '$kDefaultPort',
                     ),
