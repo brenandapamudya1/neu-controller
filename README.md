@@ -1,92 +1,92 @@
-# PadLink — HP sebagai gamepad laptop
+# PadLink — Phone as a laptop gamepad
 
-Aplikasi Flutter yang mengubah HP menjadi gamepad untuk game di laptop.
-HP mengirim state input via UDP (60 Hz), server Python di laptop
-menerjemahkannya menjadi gamepad virtual.
+A Flutter app that turns your phone into a gamepad for laptop games.
+The phone streams input state over UDP (60 Hz); a Python server on the
+laptop translates it into a virtual gamepad.
 
 ```
-[HP: Flutter app] --UDP 9876--> [Laptop: server.py] --> [gamepad virtual] --> Game
+[Phone: Flutter app] --UDP 9876--> [Laptop: server.py] --> [virtual gamepad] --> Game
 ```
 
-> Status: v1 fitur selesai di Linux (M0–M3). Backend Windows
-> (`ViGEmBus`) dan M4 (gyro, Bluetooth HID, iOS) belum diimplementasikan.
+> Status: v1 feature-complete on Linux (M0–M3). The Windows backend
+> (`ViGEmBus`) and M4 (gyro, Bluetooth HID, iOS) are not implemented yet.
 
-## Setup cepat (< 2 menit)
+## Quick setup (< 2 minutes)
 
-Butuh: HP Android + laptop Linux di jaringan yang sama
-(atau hotspot HP — direkomendasikan), dan server di bawah berjalan
-di laptop. Tanpa server, app tidak bisa apa-apa.
+You need: an Android phone + a Linux laptop on the same network
+(or the phone hotspot — recommended), plus the server below running
+on the laptop. Without the server, the app cannot do anything.
 
-**1. Laptop — jalankan server:**
+**1. Laptop — start the server:**
 ```bash
 cd server
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python server.py --port 9876
-# catat baris "connect the app to: <IP>:9876"
+# note the "connect the app to: <IP>:9876" line
 ```
 
-Izin sekali saja di Linux (akses `/dev/uinput`):
+One-time permission on Linux (access to `/dev/uinput`):
 ```bash
-sudo usermod -aG input $USER   # lalu logout/login lagi
-sudo ufw allow 9876/udp        # jika firewall aktif
+sudo usermod -aG input $USER   # then log out / log back in
+sudo ufw allow 9876/udp        # if the firewall is active
 ```
 
-**2. HP — jalankan app:**
+**2. Phone — run the app:**
 ```bash
 cd app
 flutter pub get
-flutter run            # pilih perangkat Android (USB debugging aktif)
+flutter run            # pick the Android device (USB debugging on)
 ```
 
-**3. Di app:** layar Connect → daftar "Nearby servers" → tap nama
-laptop (atau isi IP manual) → Connect → main. Status hijau <30 ms
-artinya link sehat.
+**3. In the app:** Connect screen → "Nearby servers" list → tap the
+laptop name (or enter the IP manually) → Connect → play. A green
+status under 30 ms means a healthy link.
 
-Tanpa build dari source, langkah HP diganti: install APK hasil
-`flutter build apk` lalu ikuti langkah 3.
+Without building from source, replace the phone step with: install
+the APK from `flutter build apk`, then follow step 3.
 
-## Verifikasi gamepad virtual
+## Verify the virtual gamepad
 
 ```bash
-sudo evtest            # pilih device "PadLink", tekan tombol di HP
-# atau: jstest /dev/input/js0
+sudo evtest            # pick the "PadLink" device, press phone buttons
+# or: jstest /dev/input/js0
 ```
 
-Checklist lulus v1 (PRD §7):
-- [ ] Game mengenali perangkat virtual sebagai gamepad.
-- [ ] Dua tombol + satu stick bersamaan tanpa saling memutus.
-- [ ] Matikan WiFi/app → semua input netral ≤ 1 detik (failsafe).
-- [ ] Semua kontrol (stick, D-pad, aksi, bahu) berfungsi di Android.
-- [ ] Setup hotspot + IP manual berhasil dari nol.
+v1 acceptance checklist (PRD §7):
+- [ ] Games recognize the virtual device as a gamepad.
+- [ ] Two buttons + one stick work simultaneously without dropouts.
+- [ ] Killing WiFi/app returns all inputs to neutral within ≤ 1 second (failsafe).
+- [ ] All controls (sticks, D-pad, action, shoulders) work on Android.
+- [ ] Hotspot + manual IP setup works from scratch.
 
 ## Troubleshooting
 
-| Gejala | Penyebab umum | Solusi |
+| Symptom | Common cause | Fix |
 |---|---|---|
-| Daftar server kosong | Broadcast diblokir / WiFi isolasi client (kampus/kafe) | Isi IP manual dari log server; atau pakai hotspot HP |
-| Connect tapi pill merah terus | Firewall laptop blok UDP | `sudo ufw allow 9876/udp`; cek `server.py --dry-run` menerima ping |
-| `Cannot open /dev/uinput` | Grup `input` / udev | `usermod -aG input`, relogin; darurat: `--dry-run` untuk tes jaringan saja |
-| Tombol "nyangkut" | Paket hilang saat putus | Failsafe 500 ms me-reset otomatis; jangan dimatikan. Laporkan bila terjadi |
-| Latency kuning/merah | WiFi ramai, jarak jauh | Dekatkan perangkat, pakai hotspot HP, tutup download besar |
-| Windows | Backend belum ada | v1 = Linux dulu; Windows butuh `backends/windows_vgamepad.py` + driver ViGEmBus |
+| Empty server list | Broadcast blocked / WiFi client isolation (campus/cafe) | Enter the IP manually from the server log; or use the phone hotspot |
+| Connected but pill stays red | Laptop firewall blocks UDP | `sudo ufw allow 9876/udp`; check `server.py --dry-run` receives pings |
+| `Cannot open /dev/uinput` | `input` group / udev | `usermod -aG input`, relogin; fallback: `--dry-run` for network-only tests |
+| "Stuck" buttons | Packet loss on disconnect | The 500 ms failsafe resets automatically; do not disable it. Report if it happens |
+| Yellow/red latency | Busy WiFi, long distance | Move devices closer, use the phone hotspot, stop big downloads |
+| Windows | Backend missing | v1 = Linux first; Windows needs `backends/windows_vgamepad.py` + the ViGEmBus driver |
 
-## Untuk pengembang
+## For developers
 
 ```bash
-cd app && flutter analyze && flutter test        # 57+ test widget
+cd app && flutter analyze && flutter test        # 57+ widget tests
 cd server && source .venv/bin/activate \
   && PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest tests/ -q
-python server.py --dry-run --port 9876           # tes jaringan tanpa hardware
+python server.py --dry-run --port 9876           # network test without hardware
 ```
 
-Struktur: `app/lib/{core,network,ui,settings}` (Flutter),
+Layout: `app/lib/{core,network,ui,settings}` (Flutter),
 `server/{protocol.py,server.py,backends/}` (Python),
-`documentation/{PROJECT,PRD,DESIGN,AGENT,ROADMAP}.md` (spesifikasi).
+`documentation/{PROJECT,PRD,DESIGN,AGENT,ROADMAP}.md` (specs, Indonesian).
 
-Protokol: paket input v1 13 byte @60 Hz, port UDP 9876; probe
-ping `PLpg` dan discovery `PLds` sebagai pesan bantu terpisah
-(detail: `documentation/PROJECT.md` §5).
+Protocol: v1 input packet, 13 bytes @60 Hz, UDP port 9876; `PLpg`
+ping and `PLds` discovery probes as separate auxiliary messages
+(details: `documentation/PROJECT.md` §5).
 
 ### Author : Brenanda Caesa Pamudya
 ### Email Maintainer : brenandapamudya178@gmail.com
