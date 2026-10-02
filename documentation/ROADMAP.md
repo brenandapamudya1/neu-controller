@@ -45,6 +45,7 @@ Catatan env: image ini ada ROS Humble system-wide yang merusak `pytest` global (
 
 - [x] M1a fondasi: `core/theme.dart` (token DESIGN.md §2-4) + `NeuSurface` raised/pressed via `CustomPainter` + test widget
 - [x] M1b buttons: `ActionGlyph` vektor, `NeuPressable` (pointer-id per kontrol), `NeuButton` aksi + `ShoulderButton` L1/L2/R1/R2 on/off + 5 widget test (down/up/cancel, multi-touch 2 tombol)
+- [x] M1c joystick: `NeuJoystick` basis cekung + knob, deadzone 8%, output -1..1 + clamp, balik 120 ms easeOutBack + 4 widget test (range, deadzone, clamp, multi-touch stick+tombol)
 - [ ] `InputState` penuh di app + `UdpSender` stabil 60 Hz tanpa jank
 - [ ] Widget: `NeuJoystick` (output -1..1, deadzone 8%, kembali 0 saat lepas), `NeuDpad` (geser antar segmen, diagonal = 2 arah), `NeuButton` aksi, `ShoulderButton` L1/L2/R1/R2 (v1 boleh on/off)
 - [ ] Layar controller landscape sesuai `DESIGN.md` §1 (D-pad kiri-atas, stick kiri-bawah, aksi kanan-tengah, stick kanan-bawah, L2/L1 kiri-atas, R2/R1 kanan-atas)
@@ -104,4 +105,5 @@ python server.py --port 9876             # butuh /dev/uinput (grup input / udev)
 
 - 2026-10-02: M0 Linux selesai (server + test + app 1 tombol).
 - 2026-10-02: M1a selesai (theme + NeuSurface, tanpa dependensi baru).
-- 2026-10-02: M1b selesai (buttons, `analyze` bersih, `flutter test` 8/8). Berikutnya M1c (joystick) atas persetujuan user.
+- 2026-10-02: M1b selesai (buttons, `analyze` bersih, `flutter test` 8/8).
+- 2026-10-02: M1c selesai (joystick, `analyze` bersih, `flutter test` 12/12). Berikutnya M1d (D-pad + layout) atas persetujuan user.
