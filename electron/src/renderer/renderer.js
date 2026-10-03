@@ -87,6 +87,17 @@ themeToggle.addEventListener('click', () => {
   setTheme(next);
 });
 
+const windowMinimizeBtn = document.getElementById('window-minimize');
+const windowTrayBtn = document.getElementById('window-tray');
+
+windowMinimizeBtn?.addEventListener('click', () => {
+  window.api.minimizeWindow();
+});
+
+windowTrayBtn?.addEventListener('click', () => {
+  window.api.hideToTray();
+});
+
 function setTheme(theme) {
   if (theme === 'dark') {
     document.body.classList.remove('light');

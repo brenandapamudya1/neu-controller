@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('api', {
   stopServer: () => ipcRenderer.invoke('stop-server'),
   getServerStatus: () => ipcRenderer.invoke('get-server-status'),
   copyText: (text) => ipcRenderer.invoke('copy-text', text),
+  minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
+  hideToTray: () => ipcRenderer.invoke('hide-to-tray'),
 
   onServerStatusChanged: (callback) => {
     const subscription = (event, data) => callback(data);

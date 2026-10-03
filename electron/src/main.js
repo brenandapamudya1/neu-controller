@@ -11,6 +11,7 @@ if (process.platform === 'linux') {
 let mainWindow = null;
 let tray = null;
 let serverProcess = null;
+let isQuitting = false;
 let serverStatus = {
   running: false,
   port: 9876,
@@ -53,7 +54,12 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, 'renderer/index.html'));
 
   mainWindow.on('close', (event) => {
-    // If not quitting entire app, minimize or close normally
+    // Smart close: hide to tray so background server keeps running
+    if (!isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+      return false;
+    }
     if (serverProcess) {
       stopServer();
     }
@@ -261,6 +267,20 @@ ipcMain.handle('copy-text', (event, text) => {
   return true;
 });
 
+ipcMain.handle('minimize-window', () => {
+  if (mainWindow) mainWindow.minimize();
+  return true;
+});
+
+ipcMain.handle('hide-to-tray', () => {
+  if (mainWindow) mainWindow.hide();
+  return true;
+});
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
 app.whenReady().then(() => {
   createWindow();
   createTray();
@@ -273,7 +293,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (process.platform !== 'darwin' && isQuitting) {
     stopServer();
     app.quit();
   }
