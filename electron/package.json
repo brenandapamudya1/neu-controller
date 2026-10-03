@@ -1,7 +1,7 @@
 {
   "name": "neucontroller-desktop",
   "productName": "NeuController",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NeuController Desktop App - Gamepad Server & Visualizer",
   "homepage": "https://github.com/brenandapamudya1/neu-controller",
   "author": "Brenanda Caesa Pamudya <brenandapamudya178@gmail.com>",
