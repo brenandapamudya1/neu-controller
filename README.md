@@ -76,6 +76,14 @@ python server.py --port 9876          # INFO: buttons only
 python server.py --port 9876 -v       # DEBUG: + axes 60 Hz
 ```
 
+Passive sniffer (proves packets arrive, no gamepad created —
+handy when the server log stays silent):
+
+```bash
+python monitor.py --port 9876         # button changes + full state
+python monitor.py --port 9876 -v      # + stick motion 60 Hz
+```
+
 v1 acceptance checklist (PRD §7):
 - [ ] Games recognize the virtual device as a gamepad.
 - [ ] Two buttons + one stick work simultaneously without dropouts.
