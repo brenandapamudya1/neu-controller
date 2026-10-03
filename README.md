@@ -1,6 +1,6 @@
 # NeuController — Phone as a Gamepad & Desktop Controller Manager
 
-NeuController mengubah smartphone Android Anda menjadi virtual gamepad berlatensi rendah untuk PC/Laptop Linux. Input kontroler dikirim melalui UDP (60 Hz) secara realtime dan diterjemahkan menjadi virtual controller menggunakan Linux `uinput`, dilengkapi aplikasi Desktop GUI Neumorphic berbasis Electron untuk monitoring dan kontrol penuh.
+NeuController turns your Android smartphone into a low-latency virtual gamepad for Linux PCs and laptops. Controller inputs are streamed over UDP (60 Hz) in real-time and translated into a virtual game controller using Linux `uinput`. It includes a modern neumorphic Electron desktop manager for background server lifecycle control, network diagnostics, and real-time input visualization.
 
 ```
 [Phone: Flutter App] --- UDP (Port 9876) ---> [Laptop: Electron / Python Server] ---> [Virtual Gamepad /dev/uinput] ---> Games
@@ -8,7 +8,7 @@ NeuController mengubah smartphone Android Anda menjadi virtual gamepad berlatens
 
 ---
 
-## 📸 Screenshots & Preview
+## Preview
 
 | Desktop Manager (Electron GUI) | Mobile Controller (Flutter App) |
 |:---:|:---:|
@@ -16,29 +16,31 @@ NeuController mengubah smartphone Android Anda menjadi virtual gamepad berlatens
 
 ---
 
-## ⚡ Quick Startup Guide
+## Quick Startup Guide
 
-### 0. Persiapan Izin Linux (Satu Kali Setup)
-Agar server dapat membuat virtual controller tanpa memerlukan akses `root` (`sudo`) setiap saat, berikan izin akses `/dev/uinput`:
+### 0. Linux Permission Setup (One-Time Setup)
+
+To allow the server to create a virtual input device without requiring root permissions (`sudo`) on every launch, configure access to `/dev/uinput`:
 
 ```bash
-# Tambahkan user Anda ke grup input
+# Add current user to the input group
 sudo usermod -aG input $USER
 
-# Berikan izin write ke /dev/uinput (atau pasang udev rule)
+# Grant write permissions to /dev/uinput (or configure a udev rule)
 sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput
 
-# Izinkan port UDP di firewall jika aktif
+# Allow UDP port in firewall if enabled
 sudo ufw allow 9876/udp
 ```
-> **Catatan:** Setelah menjalankan `usermod`, lakukan log out lalu log in kembali agar perubahan grup aktif.
+
+> **Note:** After running `usermod`, log out and log back in for group membership changes to take effect.
 
 ---
 
-### 1. Jalankan Desktop / Server (Pilih salah satu)
+### 1. Launch Server / Desktop Manager (Choose One)
 
-#### 🌟 Pilihan A: Menggunakan Desktop App (Electron GUI) — *Direkomendasikan*
-Aplikasi desktop menyediakan UI interaktif Neumorphic, otomatis menjalankan Python server di background, visualizer tombol live, tombol minimize ke system tray, serta indikator IP & status koneksi.
+#### Option A: Desktop Manager (Electron GUI) — Recommended
+The desktop manager provides a neumorphic interface, automatically runs the Python server in the background, displays your local IP and port, features a real-time input visualizer, and supports minimizing to the system tray.
 
 ```bash
 cd electron
@@ -46,8 +48,8 @@ npm install
 npm start
 ```
 
-#### 💻 Pilihan B: Menggunakan CLI / Headless Server (Terminal)
-Jika Anda hanya ingin menjalankan server via terminal tanpa GUI:
+#### Option B: Headless CLI Server (Terminal Only)
+If you prefer running the server via command line without a GUI:
 
 ```bash
 cd server
@@ -55,19 +57,19 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python server.py --port 9876
 ```
-*(Catatan: Anda dapat menambahkan opsi `--dry-run` untuk testing jaringan tanpa membuat virtual device hardware).*
+*(Note: You can pass `--dry-run` to test network communication without creating a virtual hardware device).*
 
 ---
 
-### 2. Jalankan Mobile App
+### 2. Launch Mobile App
 
-#### 📱 Opsi 1: Download Langsung APK (Tanpa Build)
-Unduh file APK siap pakai dari halaman [GitHub Releases](https://github.com/brenandacaesa/neu-controller/releases).
-1. Download `neu-controller-*.apk` ke smartphone Anda.
-2. Izinkan *"Install unknown apps"* pada browser/file manager dan pasang APK.
-3. Buka **Neu Controller**, cari server laptop di daftar *Nearby servers* (atau masukkan IP laptop secara manual), lalu tap **Connect**.
+#### Option 1: Download Pre-built APK (No Build Required)
+Download the latest APK release from the [GitHub Releases](https://github.com/brenandacaesa/neu-controller/releases) page:
+1. Download `neu-controller-*.apk` on your Android device.
+2. Allow installation from unknown sources when prompted and install the app.
+3. Open **Neu Controller**, select your laptop under **Nearby servers** (or enter the IP address manually), and tap **Connect**.
 
-#### 🛠️ Opsi 2: Jalankan dari Source Code (Flutter)
+#### Option 2: Run from Source (Flutter SDK)
 ```bash
 cd mobile
 flutter pub get
@@ -76,61 +78,61 @@ flutter run
 
 ---
 
-## ✨ Fitur Unggulan
+## Key Features
 
-- **Ultra-Low Latency UDP**: Pengiriman state controller 60 Hz dengan round-trip ping time monitor (<30 ms pada WiFi/Hotspot lokal).
-- **Modern Neumorphism Dark Design**: Antarmuka estetis, konsisten, dan elegan baik pada aplikasi Android maupun Desktop.
+- **Ultra-Low Latency UDP**: 60 Hz input updates with real-time round-trip latency tracking (<30 ms on local Wi-Fi or phone hotspot).
+- **Neumorphism Dark Theme**: Consistent soft-shadow aesthetic across both Android and Desktop applications.
 - **Desktop Manager GUI**:
-  - Dibuat dengan Electron & Lucide Icons.
-  - Live Controller Visualizer (pergerakan joystick & tombol menyala realtime).
-  - Background Process Management (start/stop server Python otomatis).
-  - Minimize to System Tray & background running.
-- **Full Gamepad Layout**: Dual analog sticks, D-pad, tombol aksi (Cross, Circle, Square, Triangle), L1/R1 bumpers, L2/R2 triggers, dan Start/Select.
-- **Failsafe System**: Reset otomatis input controller jika koneksi terputus dalam 500 ms untuk mencegah stuck button.
+  - Built with Electron and Lucide icons.
+  - Live controller visualizer (dynamic analog stick deflection and button highlights).
+  - Background process management (automatic start, stop, and status monitoring of the Python backend).
+  - Window controls with minimize-to-system-tray functionality.
+- **Full Gamepad Emulation**: Dual analog sticks, D-pad, action buttons (Cross, Circle, Square, Triangle), shoulder bumpers (L1/R1), triggers (L2/R2), and Start/Select buttons.
+- **Fail-Safe Mechanism**: Automatically resets all virtual controller inputs to neutral if connection drops for more than 500 ms to prevent stuck inputs.
 
 ---
 
-## 🎮 Verifikasi Virtual Gamepad di Linux
+## Verifying Virtual Gamepad on Linux
 
-Untuk memastikan sistem mengenali NeuController sebagai gamepad resmi:
+Verify that the system registers the virtual gamepad:
 
 ```bash
-# Periksa event input dengan evtest
+# Check input events using evtest
 sudo evtest
-# Pilih "NeuController" atau "PadLink", lalu tekan tombol di HP untuk melihat event
+# Select "NeuController" (or "PadLink") and press buttons on your phone to observe events
 
-# Atau menggunakan jstest
+# Alternatively, test with jstest
 jstest /dev/input/js0
 ```
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
-| Kendala | Penyebab Umum | Solusi |
+| Issue | Likely Cause | Solution |
 |---|---|---|
-| Server tidak terdeteksi di Mobile | WiFi client isolation (pada WiFi publik/kampus) | Gunakan fitur Personal Hotspot dari HP ke laptop, atau masukkan IP manual yang tertera di desktop app |
-| Status koneksi merah / Ping timeout | Firewall laptop memblokir traffic UDP | Jalankan `sudo ufw allow 9876/udp` |
-| `Cannot open /dev/uinput: Permission denied` | User belum memiliki hak akses ke device uinput | Jalankan `sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput` atau tambahkan user ke grup `input` |
-| Server crash saat start tanpa dry-run | Device `/dev/uinput` tidak dapat diakses | Berikan izin `/dev/uinput` seperti di atas atau jalankan mode `--dry-run` jika hanya mengetes konektivitas |
-| Tombol terasa delay / lag | Interferensi frekuensi WiFi 2.4 GHz | Gunakan tethering Hotspot HP 5 GHz ke laptop |
+| Server not found in mobile app | Wi-Fi client isolation (common on public/campus Wi-Fi) | Use phone hotspot to connect laptop and phone directly, or manually enter the IP displayed in the desktop app |
+| Connection indicator remains red / ping timeout | Laptop firewall is blocking incoming UDP packets | Run `sudo ufw allow 9876/udp` |
+| `Cannot open /dev/uinput: Permission denied` | User does not have read/write access to `/dev/uinput` | Run `sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput` or add user to `input` group and re-login |
+| Server crashes immediately without `--dry-run` | `/dev/uinput` permission issue or missing module | Configure uinput permissions as shown above, or run with `--dry-run` to test network only |
+| Noticeable input delay or packet loss | 2.4 GHz Wi-Fi congestion or distance | Switch to 5 GHz Wi-Fi or tether laptop via phone Wi-Fi hotspot |
 
 ---
 
-## 📂 Struktur Repositori
+## Repository Structure
 
 ```
 neu-controller/
-├── electron/          # Desktop Manager UI (Electron, Lucide Icons, IPC)
-├── mobile/            # Mobile Gamepad App (Flutter, Neumorphic UI, UDP Client)
-├── server/            # Backend Virtual Controller (Python, uinput/python-uinput)
-├── image/             # Screenshot & preview aset dokumentasi
-└── documentation/     # Spesifikasi teknis, PRD, dan panduan arsitektur
+├── electron/          # Desktop manager UI (Electron, Lucide icons, IPC)
+├── mobile/            # Mobile gamepad app (Flutter, neumorphic UI, UDP client)
+├── server/            # Virtual controller backend (Python, Linux uinput)
+├── image/             # Screenshots and preview assets
+└── documentation/     # Technical specifications and design documents
 ```
 
 ---
 
-## 👤 Author & Maintainer
+## Author & Maintainer
 - **Author**: Brenanda Caesa Pamudya
 - **Email**: brenandapamudya178@gmail.com
 - **Repository**: [github.com/brenandacaesa/neu-controller](https://github.com/brenandacaesa/neu-controller)
