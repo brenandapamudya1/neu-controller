@@ -11,7 +11,9 @@
     <!-- Header -->
     <header class="header">
       <div class="brand">
-        <div class="logo-icon">🎮</div>
+        <div class="logo-icon">
+          <i data-lucide="gamepad-2"></i>
+        </div>
         <div>
           <h1>NeuController</h1>
           <p class="subtitle">Virtual Gamepad Server & Visualizer</p>
@@ -24,7 +26,7 @@
           <span id="status-text">Server Stopped</span>
         </div>
         <button id="theme-toggle" class="neu-btn circle" title="Toggle Light/Dark Theme">
-          <span id="theme-icon">🌙</span>
+          <i data-lucide="moon" id="theme-icon"></i>
         </button>
       </div>
     </header>
@@ -38,17 +40,20 @@
           
           <div class="server-toggle-container">
             <button id="server-btn" class="neu-btn primary big-btn">
-              <span id="server-btn-icon">▶</span>
+              <span id="server-btn-icon-wrapper"><i data-lucide="play" id="server-btn-icon"></i></span>
               <span id="server-btn-text">Start Server</span>
             </button>
           </div>
 
           <div id="permission-banner" class="permission-banner" style="display: none;">
-            <div class="banner-title">⚠️ /dev/uinput Permission Required</div>
+            <div class="banner-title"><i data-lucide="alert-triangle"></i> /dev/uinput Permission Required</div>
             <p class="banner-desc">Linux requires write access to create virtual gamepads. Run this in terminal, or check <strong>Dry Run</strong> below:</p>
             <div class="code-box">
               <code>sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput</code>
-              <button id="copy-permission-btn" class="neu-btn small" title="Copy Command">📋 Copy</button>
+              <button id="copy-permission-btn" class="neu-btn small" title="Copy Command">
+                <i data-lucide="copy"></i>
+                <span id="copy-permission-text">Copy</span>
+              </button>
             </div>
           </div>
 
@@ -73,7 +78,10 @@
           <div id="ip-list" class="ip-list">
             <div class="ip-item">
               <span class="ip-addr" id="primary-ip">127.0.0.1</span>
-              <button id="copy-ip-btn" class="neu-btn small" title="Copy to clipboard">📋 Copy</button>
+              <button id="copy-ip-btn" class="neu-btn small" title="Copy to clipboard">
+                <i data-lucide="copy"></i>
+                <span id="copy-ip-text">Copy</span>
+              </button>
             </div>
           </div>
 
@@ -97,7 +105,10 @@
         <div class="neu-card log-card">
           <div class="log-header">
             <h2>Activity Log</h2>
-            <button id="clear-log-btn" class="neu-btn small">Clear</button>
+            <button id="clear-log-btn" class="neu-btn small">
+              <i data-lucide="trash-2"></i>
+              <span>Clear</span>
+            </button>
           </div>
           <div id="log-console" class="log-console">
             <div class="log-entry info">[System] Ready to start server.</div>
@@ -215,6 +226,7 @@
     </main>
   </div>
 
+  <script src="vendor/lucide.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ const BTN_HOME = 1 << 14;
 // DOM Elements
 const serverBtn = document.getElementById('server-btn');
 const serverBtnText = document.getElementById('server-btn-text');
-const serverBtnIcon = document.getElementById('server-btn-icon');
+const serverBtnIconWrapper = document.getElementById('server-btn-icon-wrapper');
 const portInput = document.getElementById('port-input');
 const dryRunCheckbox = document.getElementById('dry-run-checkbox');
 const statusPill = document.getElementById('status-pill');
@@ -33,11 +33,16 @@ const packetSeqEl = document.getElementById('packet-seq');
 const logConsole = document.getElementById('log-console');
 const clearLogBtn = document.getElementById('clear-log-btn');
 const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
 const lightbar = document.getElementById('lightbar');
 const backendStatus = document.getElementById('backend-status');
 const permissionBanner = document.getElementById('permission-banner');
 const copyPermissionBtn = document.getElementById('copy-permission-btn');
+
+function refreshIcons() {
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+}
 
 // Button Elements Map
 const buttonEls = {
@@ -86,13 +91,14 @@ function setTheme(theme) {
   if (theme === 'dark') {
     document.body.classList.remove('light');
     document.body.classList.add('dark');
-    themeIcon.textContent = '☀️';
+    themeToggle.innerHTML = '<i data-lucide="sun"></i>';
   } else {
     document.body.classList.remove('dark');
     document.body.classList.add('light');
-    themeIcon.textContent = '🌙';
+    themeToggle.innerHTML = '<i data-lucide="moon"></i>';
   }
   localStorage.setItem('neu-theme', theme);
+  refreshIcons();
 }
 
 // Log utility
@@ -114,9 +120,11 @@ copyIpBtn.addEventListener('click', async () => {
   const ip = primaryIpEl.textContent.trim();
   if (ip) {
     await window.api.copyText(ip);
-    copyIpBtn.textContent = '✅ Copied!';
+    copyIpBtn.innerHTML = '<i data-lucide="check"></i> <span id="copy-ip-text">Copied!</span>';
+    refreshIcons();
     setTimeout(() => {
-      copyIpBtn.textContent = '📋 Copy';
+      copyIpBtn.innerHTML = '<i data-lucide="copy"></i> <span id="copy-ip-text">Copy</span>';
+      refreshIcons();
     }, 1500);
   }
 });
@@ -124,9 +132,11 @@ copyIpBtn.addEventListener('click', async () => {
 // Copy Permission Command button
 copyPermissionBtn?.addEventListener('click', async () => {
   await window.api.copyText('sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput');
-  copyPermissionBtn.textContent = '✅ Copied!';
+  copyPermissionBtn.innerHTML = '<i data-lucide="check"></i> <span id="copy-permission-text">Copied!</span>';
+  refreshIcons();
   setTimeout(() => {
-    copyPermissionBtn.textContent = '📋 Copy';
+    copyPermissionBtn.innerHTML = '<i data-lucide="copy"></i> <span id="copy-permission-text">Copy</span>';
+    refreshIcons();
   }, 1500);
 });
 
@@ -157,7 +167,7 @@ function updateServerUI(status) {
     statusPill.className = 'status-pill running';
     statusText.textContent = `Running :${status.port}`;
     serverBtn.className = 'neu-btn danger big-btn';
-    serverBtnIcon.textContent = '⏹';
+    if (serverBtnIconWrapper) serverBtnIconWrapper.innerHTML = '<i data-lucide="square"></i>';
     serverBtnText.textContent = 'Stop Server';
     portInput.disabled = true;
     dryRunCheckbox.disabled = true;
@@ -172,13 +182,14 @@ function updateServerUI(status) {
     statusPill.className = 'status-pill stopped';
     statusText.textContent = 'Server Stopped';
     serverBtn.className = 'neu-btn primary big-btn';
-    serverBtnIcon.textContent = '▶';
+    if (serverBtnIconWrapper) serverBtnIconWrapper.innerHTML = '<i data-lucide="play"></i>';
     serverBtnText.textContent = 'Start Server';
     portInput.disabled = false;
     dryRunCheckbox.disabled = false;
     lightbar.className = 'lightbar';
     clientStatusEl.textContent = 'None';
   }
+  refreshIcons();
 
   if (status.connectedClient) {
     clientStatusEl.textContent = status.connectedClient;
@@ -300,7 +311,9 @@ window.api.onServerStopped((data) => {
   resetController();
 });
 
-// Initial Status Query
+// Initial Status Query & Render Icons
+refreshIcons();
 window.api.getServerStatus().then((status) => {
   updateServerUI(status);
+  refreshIcons();
 });

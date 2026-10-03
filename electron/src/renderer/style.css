@@ -57,6 +57,38 @@ body {
   height: 100vh;
 }
 
+/* Lucide Icons */
+.lucide {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.logo-icon .lucide {
+  width: 28px;
+  height: 28px;
+  color: var(--accent-color);
+}
+
+.neu-btn.small .lucide {
+  width: 13px;
+  height: 13px;
+}
+
+.neu-btn.big-btn .lucide {
+  width: 18px;
+  height: 18px;
+}
+
+.banner-title .lucide {
+  width: 16px;
+  height: 16px;
+  color: var(--warn-color);
+  margin-right: 4px;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;

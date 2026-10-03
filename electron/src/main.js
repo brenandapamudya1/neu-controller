@@ -3,6 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+// Ensure seamless execution across various Linux window managers and permissions
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('no-sandbox');
+}
+
 let mainWindow = null;
 let tray = null;
 let serverProcess = null;
