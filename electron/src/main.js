@@ -33,12 +33,14 @@ function getServerScriptPath() {
 }
 
 function createWindow() {
+  const appIconPath = path.resolve(__dirname, '../assets/icon.png');
   mainWindow = new BrowserWindow({
     width: 1080,
     height: 720,
     minWidth: 920,
     minHeight: 640,
     title: 'NeuController Desktop',
+    icon: fs.existsSync(appIconPath) ? appIconPath : undefined,
     backgroundColor: '#E0E5EC',
     frame: true,
     webPreferences: {
@@ -63,16 +65,21 @@ function createWindow() {
 }
 
 function createTray() {
-  // Create 16x16 placeholder icon for tray
-  const size = 16;
-  const canvas = Buffer.alloc(size * size * 4);
-  for (let i = 0; i < size * size; i++) {
-    canvas[i * 4] = 79;     // B
-    canvas[i * 4 + 1] = 138;// G
-    canvas[i * 4 + 2] = 249;// R
-    canvas[i * 4 + 3] = 255;// A
+  const trayIconPath = path.resolve(__dirname, '../assets/tray-icon.png');
+  let icon;
+  if (fs.existsSync(trayIconPath)) {
+    icon = nativeImage.createFromPath(trayIconPath);
+  } else {
+    const size = 16;
+    const canvas = Buffer.alloc(size * size * 4);
+    for (let i = 0; i < size * size; i++) {
+      canvas[i * 4] = 79;
+      canvas[i * 4 + 1] = 138;
+      canvas[i * 4 + 2] = 249;
+      canvas[i * 4 + 3] = 255;
+    }
+    icon = nativeImage.createFromBuffer(canvas, { width: size, height: size });
   }
-  const icon = nativeImage.createFromBuffer(canvas, { width: size, height: size });
   tray = new Tray(icon);
   tray.setToolTip('NeuController Desktop Server');
 
