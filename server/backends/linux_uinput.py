@@ -57,7 +57,7 @@ class LinuxUinputBackend:
 
         try:
             self._ui = UInput(capabilities, name="PadLink", version=0x1)
-        except (OSError, PermissionError) as exc:
+        except Exception as exc:
             raise RuntimeError(
                 "Cannot open /dev/uinput. Need access (udev rule or group "
                 "'input'), or run with --dry-run. "

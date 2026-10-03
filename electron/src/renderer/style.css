@@ -218,6 +218,50 @@ body {
   box-shadow: var(--inset-shadow);
 }
 
+/* Permission Banner */
+.permission-banner {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: var(--inset-shadow-sm);
+  border-left: 4px solid var(--warn-color);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--warn-color);
+}
+
+.banner-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.code-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--inset-shadow);
+  padding: 6px 10px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.code-box code {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--accent-color);
+  word-break: break-all;
+}
+
 /* Content Grid */
 .content-grid {
   display: grid;

@@ -43,6 +43,15 @@
             </button>
           </div>
 
+          <div id="permission-banner" class="permission-banner" style="display: none;">
+            <div class="banner-title">⚠️ /dev/uinput Permission Required</div>
+            <p class="banner-desc">Linux requires write access to create virtual gamepads. Run this in terminal, or check <strong>Dry Run</strong> below:</p>
+            <div class="code-box">
+              <code>sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput</code>
+              <button id="copy-permission-btn" class="neu-btn small" title="Copy Command">📋 Copy</button>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="port-input">UDP Port</label>
             <input type="number" id="port-input" value="9876" min="1024" max="65535" class="neu-input">

@@ -36,6 +36,8 @@ const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const lightbar = document.getElementById('lightbar');
 const backendStatus = document.getElementById('backend-status');
+const permissionBanner = document.getElementById('permission-banner');
+const copyPermissionBtn = document.getElementById('copy-permission-btn');
 
 // Button Elements Map
 const buttonEls = {
@@ -117,6 +119,15 @@ copyIpBtn.addEventListener('click', async () => {
       copyIpBtn.textContent = '📋 Copy';
     }, 1500);
   }
+});
+
+// Copy Permission Command button
+copyPermissionBtn?.addEventListener('click', async () => {
+  await window.api.copyText('sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput');
+  copyPermissionBtn.textContent = '✅ Copied!';
+  setTimeout(() => {
+    copyPermissionBtn.textContent = '📋 Copy';
+  }, 1500);
 });
 
 // Server Button Toggle
@@ -266,6 +277,11 @@ window.api.onServerEvent((data) => {
     resetController();
     clientStatusEl.textContent = 'Disconnected (Idle)';
     lightbar.className = 'lightbar';
+  } else if (data.event === 'error') {
+    if (data.error === 'uinput_permission') {
+      if (permissionBanner) permissionBanner.style.display = 'flex';
+      appendLog(data.message, 'error');
+    }
   } else if (data.event === 'ping') {
     // Ping probe received
   }

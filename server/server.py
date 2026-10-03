@@ -191,7 +191,7 @@ async def _failsafe_loop(proto: PadLinkProtocol, timeout: float = FAILSAFE_TIMEO
             was_connected = True
 
 
-def create_backend(dry_run: bool):
+def create_backend(dry_run: bool, json_mode: bool = False):
     if dry_run:
         from backends import LoggingBackend
 
@@ -204,6 +204,17 @@ def create_backend(dry_run: bool):
     except RuntimeError as exc:
         log.error("%s", exc)
         log.error("Hint: run with --dry-run to test networking without /dev/uinput.")
+        if json_mode:
+            print(
+                json.dumps(
+                    {
+                        "event": "error",
+                        "error": "uinput_permission",
+                        "message": str(exc),
+                    }
+                ),
+                flush=True,
+            )
         raise SystemExit(2) from exc
 
 
@@ -228,7 +239,7 @@ def _local_ips() -> list[str]:
 
 
 async def _amain(host: str, port: int, dry_run: bool, json_mode: bool = False) -> None:
-    backend = create_backend(dry_run)
+    backend = create_backend(dry_run, json_mode=json_mode)
     loop = asyncio.get_running_loop()
     proto = PadLinkProtocol(backend, port=port, json_mode=json_mode)
     transport, _ = await loop.create_datagram_endpoint(
