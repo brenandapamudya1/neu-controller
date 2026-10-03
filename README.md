@@ -34,7 +34,7 @@ sudo ufw allow 9876/udp        # if the firewall is active
 
 **2. Phone — run the app:**
 ```bash
-cd app
+cd mobile
 flutter pub get
 flutter run            # pick the Android device (USB debugging on)
 ```
@@ -111,7 +111,8 @@ cd server && source .venv/bin/activate \
 python server.py --dry-run --port 9876           # network test without hardware
 ```
 
-Layout: `app/lib/{core,network,ui,settings}` (Flutter),
+Layout: `mobile/lib/{core,network,ui,settings}` (Flutter),
+`electron/` (Desktop app GUI),
 `server/{protocol.py,server.py,backends/}` (Python),
 `documentation/{PROJECT,PRD,DESIGN,AGENT,ROADMAP}.md` (specs, Indonesian).
 
