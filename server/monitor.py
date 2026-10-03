@@ -21,10 +21,31 @@ from protocol import (  # noqa: E402
     DEFAULT_PORT,
     decode,
     decode_ping,
+    encode_discovery_reply,
     is_discovery_query,
     is_ping,
     pressed_names,
 )
+
+
+def _local_ips() -> list[str]:
+    """Non-loopback IPv4 addresses for the 'connect to' hint. Best effort."""
+    ips: set[str] = set()
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        ips.add(sock.getsockname()[0])
+        sock.close()
+    except OSError:
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = info[4][0]
+            if not ip.startswith("127."):
+                ips.add(ip)
+    except OSError:
+        pass
+    return sorted(ips)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -39,6 +60,9 @@ def main(argv: list[str] | None = None) -> int:
     sock.bind(("0.0.0.0", args.port))
     sock.settimeout(0.5)
     print(f"listening on udp 0.0.0.0:{args.port} (Ctrl-C to stop)")
+    addrs = _local_ips()
+    if addrs:
+        print(f"connect the app to: {', '.join(addrs)} (port {args.port})")
     print("press buttons / move sticks on the phone...")
 
     counts = {"input": 0, "ping": 0, "discovery": 0, "invalid": 0}
@@ -55,7 +79,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{stamp} ping nonce={decode_ping(data)} from {addr[0]}")
             elif is_discovery_query(data):
                 counts["discovery"] += 1
-                print(f"{stamp} discovery query from {addr[0]}")
+                reply = encode_discovery_reply(args.port, socket.gethostname())
+                sock.sendto(reply, addr)
+                print(f"{stamp} discovery query from {addr[0]} (replied)")
             else:
                 try:
                     state = decode(data)
