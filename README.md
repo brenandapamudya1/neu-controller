@@ -1,124 +1,136 @@
-# PadLink — Phone as a laptop gamepad
+# NeuController — Phone as a Gamepad & Desktop Controller Manager
 
-A Flutter app that turns your phone into a gamepad for laptop games.
-The phone streams input state over UDP (60 Hz); a Python server on the
-laptop translates it into a virtual gamepad.
+NeuController mengubah smartphone Android Anda menjadi virtual gamepad berlatensi rendah untuk PC/Laptop Linux. Input kontroler dikirim melalui UDP (60 Hz) secara realtime dan diterjemahkan menjadi virtual controller menggunakan Linux `uinput`, dilengkapi aplikasi Desktop GUI Neumorphic berbasis Electron untuk monitoring dan kontrol penuh.
 
 ```
-[Phone: Flutter app] --UDP 9876--> [Laptop: server.py] --> [virtual gamepad] --> Game
+[Phone: Flutter App] --- UDP (Port 9876) ---> [Laptop: Electron / Python Server] ---> [Virtual Gamepad /dev/uinput] ---> Games
 ```
 
-> Status: v1 feature-complete on Linux (M0–M3). The Windows backend
-> (`ViGEmBus`) and M4 (gyro, Bluetooth HID, iOS) are not implemented yet.
+---
 
-## Quick setup (< 2 minutes)
+## 📸 Screenshots & Preview
 
-You need: an Android phone + a Linux laptop on the same network
-(or the phone hotspot — recommended), plus the server below running
-on the laptop. Without the server, the app cannot do anything.
+| Desktop Manager (Electron GUI) | Mobile Controller (Flutter App) |
+|:---:|:---:|
+| <img src="image/electron-preview.jpeg" alt="NeuController Desktop Preview" width="500"/> | <img src="image/controller-preview.jpeg" alt="NeuController Mobile Preview" width="500"/> |
 
-**1. Laptop — start the server:**
+---
+
+## ⚡ Quick Startup Guide
+
+### 0. Persiapan Izin Linux (Satu Kali Setup)
+Agar server dapat membuat virtual controller tanpa memerlukan akses `root` (`sudo`) setiap saat, berikan izin akses `/dev/uinput`:
+
+```bash
+# Tambahkan user Anda ke grup input
+sudo usermod -aG input $USER
+
+# Berikan izin write ke /dev/uinput (atau pasang udev rule)
+sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput
+
+# Izinkan port UDP di firewall jika aktif
+sudo ufw allow 9876/udp
+```
+> **Catatan:** Setelah menjalankan `usermod`, lakukan log out lalu log in kembali agar perubahan grup aktif.
+
+---
+
+### 1. Jalankan Desktop / Server (Pilih salah satu)
+
+#### 🌟 Pilihan A: Menggunakan Desktop App (Electron GUI) — *Direkomendasikan*
+Aplikasi desktop menyediakan UI interaktif Neumorphic, otomatis menjalankan Python server di background, visualizer tombol live, tombol minimize ke system tray, serta indikator IP & status koneksi.
+
+```bash
+cd electron
+npm install
+npm start
+```
+
+#### 💻 Pilihan B: Menggunakan CLI / Headless Server (Terminal)
+Jika Anda hanya ingin menjalankan server via terminal tanpa GUI:
+
 ```bash
 cd server
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python server.py --port 9876
-# note the "connect the app to: <IP>:9876" line
 ```
+*(Catatan: Anda dapat menambahkan opsi `--dry-run` untuk testing jaringan tanpa membuat virtual device hardware).*
 
-One-time permission on Linux (access to `/dev/uinput`):
-```bash
-sudo usermod -aG input $USER   # then log out / log back in
-sudo ufw allow 9876/udp        # if the firewall is active
-```
+---
 
-**2. Phone — run the app:**
+### 2. Jalankan Mobile App
+
+#### 📱 Opsi 1: Download Langsung APK (Tanpa Build)
+Unduh file APK siap pakai dari halaman [GitHub Releases](https://github.com/brenandacaesa/neu-controller/releases).
+1. Download `neu-controller-*.apk` ke smartphone Anda.
+2. Izinkan *"Install unknown apps"* pada browser/file manager dan pasang APK.
+3. Buka **Neu Controller**, cari server laptop di daftar *Nearby servers* (atau masukkan IP laptop secara manual), lalu tap **Connect**.
+
+#### 🛠️ Opsi 2: Jalankan dari Source Code (Flutter)
 ```bash
 cd mobile
 flutter pub get
-flutter run            # pick the Android device (USB debugging on)
+flutter run
 ```
 
-**3. In the app:** Connect screen → "Nearby servers" list → tap the
-laptop name (or enter the IP manually) → Connect → play. A green
-status under 30 ms means a healthy link.
+---
 
-Without building from source, replace the phone step with: install
-the APK from `flutter build apk`, then follow step 3.
+## ✨ Fitur Unggulan
 
-## Download APK (no build needed)
+- **Ultra-Low Latency UDP**: Pengiriman state controller 60 Hz dengan round-trip ping time monitor (<30 ms pada WiFi/Hotspot lokal).
+- **Modern Neumorphism Dark Design**: Antarmuka estetis, konsisten, dan elegan baik pada aplikasi Android maupun Desktop.
+- **Desktop Manager GUI**:
+  - Dibuat dengan Electron & Lucide Icons.
+  - Live Controller Visualizer (pergerakan joystick & tombol menyala realtime).
+  - Background Process Management (start/stop server Python otomatis).
+  - Minimize to System Tray & background running.
+- **Full Gamepad Layout**: Dual analog sticks, D-pad, tombol aksi (Cross, Circle, Square, Triangle), L1/R1 bumpers, L2/R2 triggers, dan Start/Select.
+- **Failsafe System**: Reset otomatis input controller jika koneksi terputus dalam 500 ms untuk mencegah stuck button.
 
-Tagged versions publish a ready-to-install APK on the
-[Releases page](https://github.com/brenandapamudya1/neu-controller/releases):
+---
 
-1. On the phone, open the latest release and download the
-   `padlink-v*.apk` file.
-2. Allow "Install unknown apps" once when prompted, then install.
-3. Start the laptop server first (step 1 above), then Connect in the app.
+## 🎮 Verifikasi Virtual Gamepad di Linux
 
-Every push to `master` also builds an APK automatically (Actions tab →
-latest `build-apk` run → Artifacts), so testers never need the SDK.
-
-## Verify the virtual gamepad
-
-Watch live output two ways:
+Untuk memastikan sistem mengenali NeuController sebagai gamepad resmi:
 
 ```bash
-sudo evtest            # pick the "PadLink" device, press phone buttons
-# or: jstest /dev/input/js0
+# Periksa event input dengan evtest
+sudo evtest
+# Pilih "NeuController" atau "PadLink", lalu tekan tombol di HP untuk melihat event
+
+# Atau menggunakan jstest
+jstest /dev/input/js0
 ```
 
-The server itself logs every button change (`buttons: Cross+L1`,
-`(none)` on release); stick motion shows with `-v`:
+---
 
-```bash
-python server.py --port 9876          # INFO: buttons only
-python server.py --port 9876 -v       # DEBUG: + axes 60 Hz
-```
+## 🔧 Troubleshooting
 
-Passive sniffer (proves packets arrive, no gamepad created —
-handy when the server log stays silent):
-
-```bash
-python monitor.py --port 9876         # button changes + full state
-python monitor.py --port 9876 -v      # + stick motion 60 Hz
-```
-
-v1 acceptance checklist (PRD §7):
-- [ ] Games recognize the virtual device as a gamepad.
-- [ ] Two buttons + one stick work simultaneously without dropouts.
-- [ ] Killing WiFi/app returns all inputs to neutral within ≤ 1 second (failsafe).
-- [ ] All controls (sticks, D-pad, action, shoulders) work on Android.
-- [ ] Hotspot + manual IP setup works from scratch.
-
-## Troubleshooting
-
-| Symptom | Common cause | Fix |
+| Kendala | Penyebab Umum | Solusi |
 |---|---|---|
-| Empty server list | Broadcast blocked / WiFi client isolation (campus/cafe) | Enter the IP manually from the server log; or use the phone hotspot |
-| Connected but pill stays red | Laptop firewall blocks UDP | `sudo ufw allow 9876/udp`; check `server.py --dry-run` receives pings |
-| `Cannot open /dev/uinput` | `input` group / udev | `usermod -aG input`, relogin; fallback: `--dry-run` for network-only tests |
-| "Stuck" buttons | Packet loss on disconnect | The 500 ms failsafe resets automatically; do not disable it. Report if it happens |
-| Yellow/red latency | Busy WiFi, long distance | Move devices closer, use the phone hotspot, stop big downloads |
-| Windows | Backend missing | v1 = Linux first; Windows needs `backends/windows_vgamepad.py` + the ViGEmBus driver |
+| Server tidak terdeteksi di Mobile | WiFi client isolation (pada WiFi publik/kampus) | Gunakan fitur Personal Hotspot dari HP ke laptop, atau masukkan IP manual yang tertera di desktop app |
+| Status koneksi merah / Ping timeout | Firewall laptop memblokir traffic UDP | Jalankan `sudo ufw allow 9876/udp` |
+| `Cannot open /dev/uinput: Permission denied` | User belum memiliki hak akses ke device uinput | Jalankan `sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput` atau tambahkan user ke grup `input` |
+| Server crash saat start tanpa dry-run | Device `/dev/uinput` tidak dapat diakses | Berikan izin `/dev/uinput` seperti di atas atau jalankan mode `--dry-run` jika hanya mengetes konektivitas |
+| Tombol terasa delay / lag | Interferensi frekuensi WiFi 2.4 GHz | Gunakan tethering Hotspot HP 5 GHz ke laptop |
 
-## For developers
+---
 
-```bash
-cd app && flutter analyze && flutter test        # 57+ widget tests
-cd server && source .venv/bin/activate \
-  && PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest tests/ -q
-python server.py --dry-run --port 9876           # network test without hardware
+## 📂 Struktur Repositori
+
+```
+neu-controller/
+├── electron/          # Desktop Manager UI (Electron, Lucide Icons, IPC)
+├── mobile/            # Mobile Gamepad App (Flutter, Neumorphic UI, UDP Client)
+├── server/            # Backend Virtual Controller (Python, uinput/python-uinput)
+├── image/             # Screenshot & preview aset dokumentasi
+└── documentation/     # Spesifikasi teknis, PRD, dan panduan arsitektur
 ```
 
-Layout: `mobile/lib/{core,network,ui,settings}` (Flutter),
-`electron/` (Desktop app GUI),
-`server/{protocol.py,server.py,backends/}` (Python),
-`documentation/{PROJECT,PRD,DESIGN,AGENT,ROADMAP}.md` (specs, Indonesian).
+---
 
-Protocol: v1 input packet, 13 bytes @60 Hz, UDP port 9876; `PLpg`
-ping and `PLds` discovery probes as separate auxiliary messages
-(details: `documentation/PROJECT.md` §5).
-
-### Author : Brenanda Caesa Pamudya
-### Email Maintainer : brenandapamudya178@gmail.com
+## 👤 Author & Maintainer
+- **Author**: Brenanda Caesa Pamudya
+- **Email**: brenandapamudya178@gmail.com
+- **Repository**: [github.com/brenandacaesa/neu-controller](https://github.com/brenandacaesa/neu-controller)
