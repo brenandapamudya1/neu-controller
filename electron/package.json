@@ -3,6 +3,8 @@
   "productName": "NeuController",
   "version": "1.0.0",
   "description": "NeuController Desktop App - Gamepad Server & Visualizer",
+  "homepage": "https://github.com/brenandapamudya1/neu-controller",
+  "author": "Brenanda Caesa Pamudya <brenandapamudya178@gmail.com>",
   "main": "src/main.js",
   "scripts": {
     "start": "electron . --no-sandbox",
@@ -29,7 +31,8 @@
           "**/*",
           "!**/.venv/**",
           "!**/__pycache__/**",
-          "!**/tests/**"
+          "!**/tests/**",
+          "!**/.pytest_cache/**"
         ]
       }
     ],
@@ -42,6 +45,9 @@
       "icon": "assets/icon.png",
       "synopsis": "Smartphone as virtual gamepad for Linux",
       "description": "NeuController Desktop Manager - Realtime gamepad server and input visualizer."
+    },
+    "deb": {
+      "maintainer": "Brenanda Caesa Pamudya <brenandapamudya178@gmail.com>"
     }
   },
   "keywords": [
@@ -50,7 +56,6 @@
     "neucontroller",
     "padlink"
   ],
-  "author": "Brenanda Caesa Pamudya",
   "license": "MIT",
   "devDependencies": {
     "electron": "^33.2.1",
