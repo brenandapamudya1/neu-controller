@@ -114,7 +114,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'PadLink',
+                    'Neu Controller',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: palette.textMuted,

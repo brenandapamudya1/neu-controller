@@ -50,7 +50,7 @@ class _PadLinkAppState extends State<PadLinkApp> {
       builder: (_, __) => NeuTheme(
         palette: settings.darkMode ? NeuPalette.dark : NeuPalette.light,
         child: MaterialApp(
-          title: 'PadLink',
+          title: 'Neu Controller',
           theme: settings.darkMode ? ThemeData.dark() : ThemeData.light(),
           home: Builder(
             builder: (BuildContext context) {
