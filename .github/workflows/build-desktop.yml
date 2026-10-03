@@ -44,9 +44,11 @@ jobs:
             --name neu-controller-server \
             --paths server \
             server/server.py
-          mkdir -p server/dist
-          mv dist/neu-controller-server server/dist/
-          chmod +x server/dist/neu-controller-server
+          mkdir -p server/bin server/dist
+          cp dist/neu-controller-server server/bin/neu-controller-server
+          cp dist/neu-controller-server server/neu-controller-server
+          mv dist/neu-controller-server server/dist/neu-controller-server
+          chmod +x server/bin/neu-controller-server server/neu-controller-server server/dist/neu-controller-server
 
       - name: Install Electron dependencies
         working-directory: electron
@@ -54,9 +56,7 @@ jobs:
 
       - name: Package Desktop App with electron-builder
         working-directory: electron
-        run: npm run dist:linux
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --linux AppImage deb --publish never
 
       - name: Rename release assets
         if: startsWith(github.ref, 'refs/tags/v')

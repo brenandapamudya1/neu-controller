@@ -45,6 +45,15 @@ function resolveServerCommand(port = 9876, dryRun = false) {
     };
   }
 
+  const packagedBinDir = path.join(process.resourcesPath, 'server', 'bin', 'neu-controller-server');
+  if (fs.existsSync(packagedBinDir)) {
+    return {
+      command: packagedBinDir,
+      args: flags,
+      cwd: path.dirname(packagedBinDir),
+    };
+  }
+
   // 2. Development compiled binary (server/dist/neu-controller-server)
   const devBin = path.resolve(__dirname, '../../server/dist/neu-controller-server');
   if (fs.existsSync(devBin)) {
