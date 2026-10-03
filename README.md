@@ -6,6 +6,31 @@ NeuController turns your Android smartphone into a low-latency virtual gamepad f
 [Phone: Flutter App] --- UDP (Port 9876) ---> [Laptop: Electron / Python Server] ---> [Virtual Gamepad /dev/uinput] ---> Games
 ```
 
+<div align="center">
+
+### Download NeuController APK for Android
+
+Get started right away by downloading the ready-to-use Android APK directly on your phone:
+
+<br/>
+
+<a href="https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller.apk">
+  <img src="https://img.shields.io/badge/Download_APK-Direct_Download_(Android)-007AFF?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Direct Download APK for Android"/>
+</a>
+&nbsp;&nbsp;
+<a href="https://github.com/brenandapamudya1/neu-controller/releases/latest">
+  <img src="https://img.shields.io/badge/GitHub_Releases-View_All_Versions-238636?style=for-the-badge&logo=github&logoColor=white" height="48" alt="GitHub Releases"/>
+</a>
+
+<br/>
+<br/>
+
+**Direct Link:** [**Download neu-controller.apk**](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller.apk) (Instant download, no build tools required)
+
+*Compatible with Android 8.0 (Oreo) and newer.*
+
+</div>
+
 ---
 
 ## Preview
@@ -63,9 +88,9 @@ python server.py --port 9876
 
 ### 2. Launch Mobile App
 
-#### Option 1: Download Pre-built APK (No Build Required)
-Download the latest APK release from the [GitHub Releases](https://github.com/brenandacaesa/neu-controller/releases) page:
-1. Download `neu-controller-*.apk` on your Android device.
+#### Option 1: Direct APK Download (Recommended)
+Download and install the APK directly on your Android phone without needing Flutter:
+1. Tap [Direct Download neu-controller.apk](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller.apk) on your Android device (or view all versions on [GitHub Releases](https://github.com/brenandapamudya1/neu-controller/releases)).
 2. Allow installation from unknown sources when prompted and install the app.
 3. Open **Neu Controller**, select your laptop under **Nearby servers** (or enter the IP address manually), and tap **Connect**.
 
@@ -135,4 +160,4 @@ neu-controller/
 ## Author & Maintainer
 - **Author**: Brenanda Caesa Pamudya
 - **Email**: brenandapamudya178@gmail.com
-- **Repository**: [github.com/brenandacaesa/neu-controller](https://github.com/brenandacaesa/neu-controller)
+- **Repository**: [github.com/brenandapamudya1/neu-controller](https://github.com/brenandapamudya1/neu-controller)

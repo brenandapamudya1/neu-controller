@@ -56,8 +56,11 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          mv build/app/outputs/flutter-apk/app-release.apk \
+          cp build/app/outputs/flutter-apk/app-release.apk \
              "build/app/outputs/flutter-apk/neu-controller-${TAG}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             "build/app/outputs/flutter-apk/neu-controller.apk"
+          rm build/app/outputs/flutter-apk/app-release.apk
 
       - name: Upload APK artifact (every run)
         uses: actions/upload-artifact@v4
