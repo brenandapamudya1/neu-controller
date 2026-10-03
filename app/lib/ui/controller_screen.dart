@@ -165,22 +165,22 @@ class _ControllerScreenState extends State<ControllerScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar: Left shoulders (L2, L1, L3), Center Lightbar, Right shoulders (R3, R1, R2).
+            // Top bar: Left shoulders (L1, L2, L3), Center Lightbar, Right shoulders (R3, R2, R1).
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Row(
                 children: [
                   ShoulderButton(
-                    kind: ShoulderKind.l2,
-                    haptic: widget.haptic,
-                    onChanged: (bool p) => controller.setL2(p ? 255 : 0),
-                  ),
-                  const SizedBox(width: 6),
-                  ShoulderButton(
                     kind: ShoulderKind.l1,
                     haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.l1, p),
+                  ),
+                  const SizedBox(width: 6),
+                  ShoulderButton(
+                    kind: ShoulderKind.l2,
+                    haptic: widget.haptic,
+                    onChanged: (bool p) => controller.setL2(p ? 255 : 0),
                   ),
                   const SizedBox(width: 6),
                   ShoulderButton(
@@ -218,16 +218,16 @@ class _ControllerScreenState extends State<ControllerScreen> {
                   ),
                   const SizedBox(width: 6),
                   ShoulderButton(
+                    kind: ShoulderKind.r2,
+                    haptic: widget.haptic,
+                    onChanged: (bool p) => controller.setR2(p ? 255 : 0),
+                  ),
+                  const SizedBox(width: 6),
+                  ShoulderButton(
                     kind: ShoulderKind.r1,
                     haptic: widget.haptic,
                     onChanged: (bool p) =>
                         controller.setButton(PadButtons.r1, p),
-                  ),
-                  const SizedBox(width: 6),
-                  ShoulderButton(
-                    kind: ShoulderKind.r2,
-                    haptic: widget.haptic,
-                    onChanged: (bool p) => controller.setR2(p ? 255 : 0),
                   ),
                 ],
               ),
