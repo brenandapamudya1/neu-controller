@@ -1,0 +1,95 @@
+name: build-desktop
+
+"on":
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: server/requirements.txt
+
+      - name: Install Python dependencies & PyInstaller
+        run: |
+          pip install --upgrade pip
+          pip install -r server/requirements.txt
+          pip install pyinstaller
+
+      - name: Compile Python server binary (PyInstaller)
+        run: |
+          pyinstaller --onefile --clean \
+            --name neu-controller-server \
+            --paths server \
+            server/server.py
+          mkdir -p server/dist
+          mv dist/neu-controller-server server/dist/
+          chmod +x server/dist/neu-controller-server
+
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm ci
+
+      - name: Package Desktop App with electron-builder
+        working-directory: electron
+        run: npm run dist:linux
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          cd electron/dist
+          # Find and copy AppImage to standard names
+          APPIMAGE=$(ls *.AppImage 2>/dev/null | head -n 1 || true)
+          if [ -n "$APPIMAGE" ]; then
+            cp "$APPIMAGE" "NeuController-${TAG}-x86_64.AppImage"
+            cp "$APPIMAGE" "NeuController-x86_64.AppImage"
+          fi
+          # Find and copy deb to standard names
+          DEB=$(ls *.deb 2>/dev/null | head -n 1 || true)
+          if [ -n "$DEB" ]; then
+            cp "$DEB" "neu-controller-${TAG}-amd64.deb"
+            cp "$DEB" "neu-controller-amd64.deb"
+          fi
+
+      - name: Upload artifacts (every run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: neu-controller-desktop-linux
+          path: |
+            electron/dist/*.AppImage
+            electron/dist/*.deb
+          retention-days: 30
+
+      - name: Publish to GitHub Release (tags v* only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            electron/dist/*.AppImage
+            electron/dist/*.deb
+          generate_release_notes: false

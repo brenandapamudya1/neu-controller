@@ -8,26 +8,34 @@ NeuController turns your Android smartphone into a low-latency virtual gamepad f
 
 <div align="center">
 
-### Download NeuController APK for Android
+### Download NeuController
 
-Get started right away by downloading the ready-to-use Android APK directly on your phone:
+Ready-to-use packages for mobile and desktop. No development environment or build tools required.
 
 <br/>
 
 <a href="https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller.apk">
-  <img src="https://img.shields.io/badge/Download_APK-Direct_Download_(Android)-007AFF?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Direct Download APK for Android"/>
+  <img src="https://img.shields.io/badge/Download_APK-Android_Mobile-007AFF?style=for-the-badge&logo=android&logoColor=white" height="48" alt="Download APK for Android"/>
+</a>
+&nbsp;&nbsp;
+<a href="https://github.com/brenandapamudya1/neu-controller/releases/latest/download/NeuController-x86_64.AppImage">
+  <img src="https://img.shields.io/badge/Download_Desktop-Linux_AppImage-34C759?style=for-the-badge&logo=linux&logoColor=white" height="48" alt="Download Linux AppImage"/>
 </a>
 &nbsp;&nbsp;
 <a href="https://github.com/brenandapamudya1/neu-controller/releases/latest">
-  <img src="https://img.shields.io/badge/GitHub_Releases-View_All_Versions-238636?style=for-the-badge&logo=github&logoColor=white" height="48" alt="GitHub Releases"/>
+  <img src="https://img.shields.io/badge/GitHub_Releases-All_Packages-24292F?style=for-the-badge&logo=github&logoColor=white" height="48" alt="GitHub Releases"/>
 </a>
 
 <br/>
 <br/>
 
-**Direct Link:** [**Download neu-controller.apk**](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller.apk) (Instant download, no build tools required)
+| Platform | Package | Architecture | Direct Download |
+|:---|:---|:---|:---|
+| **Android Mobile** | APK Package | `arm64-v8a`, `armeabi-v7a` | [**neu-controller.apk**](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller.apk) |
+| **Linux Desktop** | Standalone AppImage | `x86_64` (Universal Linux) | [**NeuController-x86_64.AppImage**](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/NeuController-x86_64.AppImage) |
+| **Linux Desktop** | Debian / Ubuntu Package | `amd64` | [**neu-controller-amd64.deb**](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/neu-controller-amd64.deb) |
 
-*Compatible with Android 8.0 (Oreo) and newer.*
+*All packages are automatically published on the [GitHub Releases](https://github.com/brenandapamudya1/neu-controller/releases/latest) page.*
 
 </div>
 
@@ -64,16 +72,24 @@ sudo ufw allow 9876/udp
 
 ### 1. Launch Server / Desktop Manager (Choose One)
 
-#### Option A: Desktop Manager (Electron GUI) — Recommended
-The desktop manager provides a neumorphic interface, automatically runs the Python server in the background, displays your local IP and port, features a real-time input visualizer, and supports minimizing to the system tray.
+#### Option A: Pre-built Desktop App (AppImage) — Recommended
+Download the universal AppImage directly without installing Node.js or Python:
+1. Download [NeuController-x86_64.AppImage](https://github.com/brenandapamudya1/neu-controller/releases/latest/download/NeuController-x86_64.AppImage).
+2. Make it executable and run:
+   ```bash
+   chmod +x NeuController-x86_64.AppImage
+   ./NeuController-x86_64.AppImage
+   ```
+*(Or install the `.deb` package on Ubuntu/Debian: `sudo dpkg -i neu-controller-amd64.deb`).*
 
+#### Option B: Run from Desktop Source (Electron)
 ```bash
 cd electron
 npm install
 npm start
 ```
 
-#### Option B: Headless CLI Server (Terminal Only)
+#### Option C: Headless CLI Server (Terminal Only)
 If you prefer running the server via command line without a GUI:
 
 ```bash

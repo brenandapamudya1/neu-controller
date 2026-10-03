@@ -20,17 +20,63 @@ let serverStatus = {
   connectedClient: null,
 };
 
-function getPythonPath() {
-  // Check virtual environment in server directory
-  const venvPy = path.resolve(__dirname, '../../server/.venv/bin/python');
-  if (fs.existsSync(venvPy)) {
-    return venvPy;
+function resolveServerCommand(port = 9876, dryRun = false) {
+  const flags = ['--port', String(port), '--json'];
+  if (dryRun) {
+    flags.push('--dry-run');
   }
-  return 'python3';
-}
 
-function getServerScriptPath() {
-  return path.resolve(__dirname, '../../server/server.py');
+  // 1. Packaged standalone binary (in extraResources/server/neu-controller-server or dist/)
+  const packagedBin = path.join(process.resourcesPath, 'server', 'neu-controller-server');
+  if (fs.existsSync(packagedBin)) {
+    return {
+      command: packagedBin,
+      args: flags,
+      cwd: path.dirname(packagedBin),
+    };
+  }
+
+  const packagedDistBin = path.join(process.resourcesPath, 'server', 'dist', 'neu-controller-server');
+  if (fs.existsSync(packagedDistBin)) {
+    return {
+      command: packagedDistBin,
+      args: flags,
+      cwd: path.dirname(packagedDistBin),
+    };
+  }
+
+  // 2. Development compiled binary (server/dist/neu-controller-server)
+  const devBin = path.resolve(__dirname, '../../server/dist/neu-controller-server');
+  if (fs.existsSync(devBin)) {
+    return {
+      command: devBin,
+      args: flags,
+      cwd: path.dirname(devBin),
+    };
+  }
+
+  // 3. Packaged python script in extraResources (extraResources/server/server.py)
+  const packagedScript = path.join(process.resourcesPath, 'server', 'server.py');
+  if (fs.existsSync(packagedScript)) {
+    const packagedVenv = path.join(process.resourcesPath, 'server', '.venv', 'bin', 'python');
+    const py = fs.existsSync(packagedVenv) ? packagedVenv : 'python3';
+    return {
+      command: py,
+      args: [packagedScript, ...flags],
+      cwd: path.dirname(packagedScript),
+    };
+  }
+
+  // 4. Development mode (server/ in repo root)
+  const venvPy = path.resolve(__dirname, '../../server/.venv/bin/python');
+  const py = fs.existsSync(venvPy) ? venvPy : 'python3';
+  const devScript = path.resolve(__dirname, '../../server/server.py');
+  const devCwd = path.resolve(__dirname, '../../server');
+  return {
+    command: py,
+    args: [devScript, ...flags],
+    cwd: devCwd,
+  };
 }
 
 function createWindow() {
@@ -136,17 +182,11 @@ function startServer(port = 9876, dryRun = false) {
     return { success: false, message: 'Server is already running' };
   }
 
-  const pyPath = getPythonPath();
-  const scriptPath = getServerScriptPath();
-
-  const args = [scriptPath, '--port', String(port), '--json'];
-  if (dryRun) {
-    args.push('--dry-run');
-  }
+  const { command, args, cwd } = resolveServerCommand(port, dryRun);
 
   try {
-    serverProcess = spawn(pyPath, args, {
-      cwd: path.resolve(__dirname, '../../server'),
+    serverProcess = spawn(command, args, {
+      cwd,
       env: { ...process.env, PYTHONUNBUFFERED: '1' },
     });
 

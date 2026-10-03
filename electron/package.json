@@ -1,10 +1,48 @@
 {
   "name": "neucontroller-desktop",
+  "productName": "NeuController",
   "version": "1.0.0",
   "description": "NeuController Desktop App - Gamepad Server & Visualizer",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron . --no-sandbox"
+    "start": "electron . --no-sandbox",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:linux": "electron-builder --linux AppImage deb"
+  },
+  "build": {
+    "appId": "com.neucontroller.desktop",
+    "productName": "NeuController",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../server",
+        "to": "server",
+        "filter": [
+          "**/*",
+          "!**/.venv/**",
+          "!**/__pycache__/**",
+          "!**/tests/**"
+        ]
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Game",
+      "icon": "assets/icon.png",
+      "synopsis": "Smartphone as virtual gamepad for Linux",
+      "description": "NeuController Desktop Manager - Realtime gamepad server and input visualizer."
+    }
   },
   "keywords": [
     "gamepad",
@@ -15,7 +53,8 @@
   "author": "Brenanda Caesa Pamudya",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^33.2.1"
+    "electron": "^33.2.1",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "lucide": "^1.51.0"
