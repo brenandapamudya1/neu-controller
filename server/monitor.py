@@ -76,7 +76,8 @@ def main(argv: list[str] | None = None) -> int:
             stamp = time.strftime("%H:%M:%S")
             if is_ping(data):
                 counts["ping"] += 1
-                print(f"{stamp} ping nonce={decode_ping(data)} from {addr[0]}")
+                sock.sendto(data, addr)
+                print(f"{stamp} ping nonce={decode_ping(data)} from {addr[0]} (echoed)")
             elif is_discovery_query(data):
                 counts["discovery"] += 1
                 reply = encode_discovery_reply(args.port, socket.gethostname())
