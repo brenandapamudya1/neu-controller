@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import socket
 import sys
@@ -33,9 +34,12 @@ log = logging.getLogger("padlink")
 class PadLinkProtocol(asyncio.DatagramProtocol):
     """Asyncio UDP handler. Pure validation + backend update."""
 
-    def __init__(self, backend, port: int = DEFAULT_PORT) -> None:
+    def __init__(
+        self, backend, port: int = DEFAULT_PORT, json_mode: bool = False
+    ) -> None:
         self.backend = backend
         self.port = port
+        self.json_mode = json_mode
         self.transport = None
         self.last_seq: int | None = None
         self.last_state: InputState | None = None
@@ -53,6 +57,10 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
         # Latency probe: echo back unchanged, never touches input state.
         if is_ping(data):
             self.pings += 1
+            if self.json_mode:
+                print(
+                    json.dumps({"event": "ping", "client": addr[0]}), flush=True
+                )
             if self.transport is not None:
                 self.transport.sendto(bytes(data), addr)
             return
@@ -60,6 +68,11 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
         # Discovery query: reply with our input port + hostname.
         if is_discovery_query(data):
             self.discoveries += 1
+            if self.json_mode:
+                print(
+                    json.dumps({"event": "discovery", "client": addr[0]}),
+                    flush=True,
+                )
             if self.transport is not None:
                 reply = encode_discovery_reply(self.port, socket.gethostname())
                 self.transport.sendto(reply, addr)
@@ -80,6 +93,17 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
         if self.client_addr != addr:
             log.info("client connected: %s", addr)
             self.client_addr = addr
+            if self.json_mode:
+                print(
+                    json.dumps(
+                        {
+                            "event": "client_connected",
+                            "client": addr[0],
+                            "port": addr[1],
+                        }
+                    ),
+                    flush=True,
+                )
         buttons_changed = (
             self.last_state is None or self.last_state.buttons != state.buttons
         )
@@ -108,6 +132,24 @@ class PadLinkProtocol(asyncio.DatagramProtocol):
             log.exception("backend update failed")
             self.dropped += 1
             return
+        if self.json_mode:
+            print(
+                json.dumps(
+                    {
+                        "event": "input",
+                        "seq": state.seq,
+                        "buttons": state.buttons,
+                        "l2": state.l2,
+                        "r2": state.r2,
+                        "lx": state.lx,
+                        "ly": state.ly,
+                        "rx": state.rx,
+                        "ry": state.ry,
+                        "client": addr[0],
+                    }
+                ),
+                flush=True,
+            )
         # Button presses are rare: INFO. Stick wiggles are 60 Hz: DEBUG.
         if buttons_changed:
             names = pressed_names(state.buttons)
@@ -135,6 +177,10 @@ async def _failsafe_loop(proto: PadLinkProtocol, timeout: float = FAILSAFE_TIMEO
         if idle >= timeout:
             if was_connected or proto.last_seq is not None:
                 log.warning("failsafe: no packet for %.2fs, resetting inputs", idle)
+                if proto.json_mode:
+                    print(
+                        json.dumps({"event": "failsafe_reset"}), flush=True
+                    )
                 try:
                     proto.backend.reset()
                 except Exception:  # noqa: BLE001
@@ -181,15 +227,28 @@ def _local_ips() -> list[str]:
     return sorted(ips)
 
 
-async def _amain(host: str, port: int, dry_run: bool) -> None:
+async def _amain(host: str, port: int, dry_run: bool, json_mode: bool = False) -> None:
     backend = create_backend(dry_run)
     loop = asyncio.get_running_loop()
-    proto = PadLinkProtocol(backend, port=port)
+    proto = PadLinkProtocol(backend, port=port, json_mode=json_mode)
     transport, _ = await loop.create_datagram_endpoint(
         lambda: proto, local_addr=(host, port)
     )
-    log.info("listening on udp %s:%d (dry_run=%s)", host, port, dry_run)
     addrs = _local_ips()
+    if json_mode:
+        print(
+            json.dumps(
+                {
+                    "event": "listening",
+                    "host": host,
+                    "port": port,
+                    "ips": addrs,
+                    "dry_run": dry_run,
+                }
+            ),
+            flush=True,
+        )
+    log.info("listening on udp %s:%d (dry_run=%s)", host, port, dry_run)
     if addrs:
         log.info(
             "connect the app to: %s (port %d). Phone hotspot recommended.",
@@ -207,6 +266,8 @@ async def _amain(host: str, port: int, dry_run: bool) -> None:
         failsafe.cancel()
         transport.close()
         backend.close()
+        if json_mode:
+            print(json.dumps({"event": "stopped"}), flush=True)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -218,6 +279,11 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="log packets without creating /dev/uinput device",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="output structured JSON events on stdout for GUI integration",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
@@ -226,7 +292,7 @@ def main(argv: list[str] | None = None) -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     try:
-        asyncio.run(_amain(args.host, args.port, args.dry_run))
+        asyncio.run(_amain(args.host, args.port, args.dry_run, json_mode=args.json))
     except KeyboardInterrupt:
         pass
 

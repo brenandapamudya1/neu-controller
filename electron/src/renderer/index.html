@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuController Desktop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="light">
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-icon">🎮</div>
+        <div>
+          <h1>NeuController</h1>
+          <p class="subtitle">Virtual Gamepad Server & Visualizer</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div id="status-pill" class="status-pill stopped">
+          <span class="status-dot"></span>
+          <span id="status-text">Server Stopped</span>
+        </div>
+        <button id="theme-toggle" class="neu-btn circle" title="Toggle Light/Dark Theme">
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content-grid">
+      <!-- Left Panel: Controls & Connection -->
+      <section class="panel control-panel">
+        <div class="neu-card">
+          <h2>Server Controls</h2>
+          
+          <div class="server-toggle-container">
+            <button id="server-btn" class="neu-btn primary big-btn">
+              <span id="server-btn-icon">▶</span>
+              <span id="server-btn-text">Start Server</span>
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label for="port-input">UDP Port</label>
+            <input type="number" id="port-input" value="9876" min="1024" max="65535" class="neu-input">
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="neu-checkbox-label">
+              <input type="checkbox" id="dry-run-checkbox">
+              <span class="checkbox-custom"></span>
+              <span>Dry Run (Log only, no /dev/uinput)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="neu-card">
+          <h2>Connect Mobile</h2>
+          <p class="card-desc">Enter this IP in your phone app or connect via same network/hotspot:</p>
+          
+          <div id="ip-list" class="ip-list">
+            <div class="ip-item">
+              <span class="ip-addr" id="primary-ip">127.0.0.1</span>
+              <button id="copy-ip-btn" class="neu-btn small" title="Copy to clipboard">📋 Copy</button>
+            </div>
+          </div>
+
+          <div class="client-info">
+            <span class="label">Connected Phone:</span>
+            <span id="client-status" class="value">None</span>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">Packets</span>
+              <span id="packet-count" class="stat-val">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Sequence</span>
+              <span id="packet-seq" class="stat-val">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="neu-card log-card">
+          <div class="log-header">
+            <h2>Activity Log</h2>
+            <button id="clear-log-btn" class="neu-btn small">Clear</button>
+          </div>
+          <div id="log-console" class="log-console">
+            <div class="log-entry info">[System] Ready to start server.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Live Controller Visualizer -->
+      <section class="panel visualizer-panel">
+        <div class="neu-card visualizer-card">
+          <div class="visualizer-header">
+            <h2>Live Gamepad Visualizer</h2>
+            <div class="device-badge">Device: <strong id="backend-status">uinput (PadLink)</strong></div>
+          </div>
+
+          <!-- DualSense / PlayStation Style Layout -->
+          <div class="controller-frame">
+            <!-- Top Shoulder Buttons -->
+            <div class="shoulder-row">
+              <div class="shoulder-group left">
+                <div class="shoulder-btn neu-surface" id="btn-l1">L1</div>
+                <div class="shoulder-btn neu-surface" id="btn-l2">L2</div>
+                <div class="shoulder-btn neu-surface" id="btn-l3">L3</div>
+              </div>
+              <div class="shoulder-group right">
+                <div class="shoulder-btn neu-surface" id="btn-r3">R3</div>
+                <div class="shoulder-btn neu-surface" id="btn-r2">R2</div>
+                <div class="shoulder-btn neu-surface" id="btn-r1">R1</div>
+              </div>
+            </div>
+
+            <div class="controller-body">
+              <!-- Left Grip: D-Pad & Left Stick -->
+              <div class="grip-pod left-pod">
+                <div class="dpad-container">
+                  <div class="dpad-btn up neu-surface" id="btn-dpad-up">▲</div>
+                  <div class="dpad-middle">
+                    <div class="dpad-btn left neu-surface" id="btn-dpad-left">◀</div>
+                    <div class="dpad-center"></div>
+                    <div class="dpad-btn right neu-surface" id="btn-dpad-right">▶</div>
+                  </div>
+                  <div class="dpad-btn down neu-surface" id="btn-dpad-down">▼</div>
+                </div>
+
+                <div class="stick-container">
+                  <div class="stick-base" id="left-stick-base">
+                    <div class="stick-knob" id="left-stick-knob">
+                      <div class="stick-dot"></div>
+                    </div>
+                  </div>
+                  <div class="stick-coords" id="left-stick-coords">LX: 0, LY: 0</div>
+                </div>
+              </div>
+
+              <!-- Center Console: Lightbar, Touchpad, Center Buttons -->
+              <div class="center-console">
+                <div class="lightbar" id="lightbar"></div>
+
+                <div class="meta-buttons">
+                  <div class="meta-btn neu-surface" id="btn-share">Share</div>
+                  <div class="meta-btn neu-surface" id="btn-options">Options</div>
+                </div>
+
+                <div class="touchpad neu-surface" id="touchpad">
+                  <span>TOUCHPAD</span>
+                </div>
+
+                <div class="home-button neu-surface circle" id="btn-home">
+                  <span>PS</span>
+                </div>
+              </div>
+
+              <!-- Right Grip: Action Diamond & Right Stick -->
+              <div class="grip-pod right-pod">
+                <div class="action-diamond">
+                  <div class="action-btn triangle neu-surface" id="btn-triangle">△</div>
+                  <div class="action-middle">
+                    <div class="action-btn square neu-surface" id="btn-square">□</div>
+                    <div class="action-center"></div>
+                    <div class="action-btn circle-btn neu-surface" id="btn-circle">○</div>
+                  </div>
+                  <div class="action-btn cross neu-surface" id="btn-cross">✕</div>
+                </div>
+
+                <div class="stick-container">
+                  <div class="stick-base" id="right-stick-base">
+                    <div class="stick-knob" id="right-stick-knob">
+                      <div class="stick-dot"></div>
+                    </div>
+                  </div>
+                  <div class="stick-coords" id="right-stick-coords">RX: 0, RY: 0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Trigger Bars -->
+            <div class="trigger-meters">
+              <div class="meter-col">
+                <span class="meter-label">L2 Trigger: <span id="val-l2">0</span></span>
+                <div class="meter-track">
+                  <div class="meter-fill" id="fill-l2"></div>
+                </div>
+              </div>
+              <div class="meter-col">
+                <span class="meter-label">R2 Trigger: <span id="val-r2">0</span></span>
+                <div class="meter-track">
+                  <div class="meter-fill" id="fill-r2"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

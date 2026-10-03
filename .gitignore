@@ -35,3 +35,7 @@ Thumbs.db
 # Local env
 .env
 *.log
+
+# Node.js / Electron
+node_modules/
+electron/dist/
