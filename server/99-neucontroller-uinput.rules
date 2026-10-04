@@ -1,0 +1,3 @@
+# NeuController permanent uinput permission rule
+# Allows members of the 'input' group to access /dev/uinput without sudo
+KERNEL=="uinput", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput"

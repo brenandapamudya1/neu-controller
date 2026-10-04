@@ -56,17 +56,18 @@ Ready-to-use packages for mobile and desktop. No development environment or buil
 To allow the server to create a virtual input device without requiring root permissions (`sudo`) on every launch, configure access to `/dev/uinput`:
 
 ```bash
-# Add current user to the input group
+# 1. Add current user to the input group
 sudo usermod -aG input $USER
 
-# Grant write permissions to /dev/uinput (or configure a udev rule)
-sudo chmod 660 /dev/uinput && sudo chgrp input /dev/uinput
+# 2. Install permanent udev rule (persists across reboots)
+sudo cp server/99-neucontroller-uinput.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
 
-# Allow UDP port in firewall if enabled
+# 3. Allow UDP port in firewall if enabled
 sudo ufw allow 9876/udp
 ```
 
-> **Note:** After running `usermod`, log out and log back in for group membership changes to take effect.
+> **Note:** After running `usermod`, log out and log back in (or restart your session) for group membership changes to take effect.
 
 ---
 
@@ -177,3 +178,8 @@ neu-controller/
 - **Author**: Brenanda Caesa Pamudya
 - **Email**: brenandapamudya178@gmail.com
 - **Repository**: [github.com/brenandapamudya1/neu-controller](https://github.com/brenandapamudya1/neu-controller)
+
+---
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
