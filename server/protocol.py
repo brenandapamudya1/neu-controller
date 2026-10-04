@@ -19,6 +19,7 @@ Layout (offset, size, field):
 from __future__ import annotations
 
 import struct
+import sys
 from dataclasses import dataclass
 
 MAGIC: bytes = b"\x50\x4C"
@@ -97,7 +98,12 @@ _DISC_QUERY_STRUCT = struct.Struct("<4sB")
 _DISC_REPLY_STRUCT = struct.Struct("<4sBH")
 
 
-@dataclass(frozen=True, slots=True)
+_dc_kwargs = {"frozen": True}
+if sys.version_info >= (3, 10):
+    _dc_kwargs["slots"] = True
+
+
+@dataclass(**_dc_kwargs)
 class InputState:
     """Full controller state carried by one packet."""
 
